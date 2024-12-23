@@ -4,9 +4,9 @@
   "description": "Official Website",
   "type": "module",
   "scripts": {
-    "docs:dev": "vitepress dev docs --port 5174",
-    "docs:build": "vitepress build docs",
-    "docs:preview": "vitepress preview docs --port 5174"
+    "docs:dev": "vitepress dev --port 5174",
+    "docs:build": "vitepress build",
+    "docs:preview": "vitepress preview --port 5174"
   },
   "keywords": [],
   "author": "",
