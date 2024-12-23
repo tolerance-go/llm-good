@@ -2,9 +2,9 @@
 layout: home
 
 hero:
-  name: "官网"
-  text: "Official Website"
-  tagline: 简单、强大、高性能的解决方案
+  name: "LLM Good"
+  text: "AI驱动的游戏资产创作平台"
+  tagline: 为独立游戏开发者打造的智能数字资产创作与管理解决方案
   actions:
     - theme: brand
       text: 快速开始
@@ -15,12 +15,12 @@ hero:
 
 features:
   - icon: 🚀
-    title: 高性能
-    details: 基于最新技术栈，提供极致的性能体验
-  - icon: 🛠️
-    title: 易于使用
-    details: 简单直观的 API 设计，快速上手
-  - icon: 🔒
-    title: 安全可靠
-    details: 企业级安全保障，值得信赖
+    title: 游戏开发助手
+    details: 基于大语言模型，智能协助游戏资产的设计与创作，降低开发门槛
+  - icon: 🤖
+    title: AI驱动创作
+    details: 利用先进的AI技术，快速生成和优化游戏素材，提升创作效率
+  - icon: 📊
+    title: 资产管理
+    details: 一站式数字资产管理平台，轻松组织和管理您的游戏资源
 --- 
