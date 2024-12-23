@@ -1,0 +1,104 @@
+services:
+  nginx:
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile
+      args:
+        - VERSION=${VERSION}
+    image: llm-good-nginx:${VERSION:-latest}
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - frontend
+      - backend
+      - website
+      - game-hub
+    restart: always
+
+  website:
+    build:
+      context: .
+      dockerfile: apps/website/Dockerfile
+      args:
+        - VERSION=${VERSION}
+    image: llm-good-website:${VERSION:-latest}
+    expose:
+      - 80
+    environment:
+      - NODE_ENV=${NODE_ENV}
+    restart: always
+
+  frontend:
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile
+      args:
+        - VERSION=${VERSION}
+    image: llm-good-frontend:${VERSION:-latest}
+    expose:
+      - 80
+    environment:
+      - VITE_API_URL=/api
+    depends_on:
+      - backend
+    restart: always
+
+  backend:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+      args:
+        - VERSION=${VERSION}
+    image: llm-good-backend:${VERSION:-latest}
+    expose:
+      - ${BACKEND_PORT}
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=${DATABASE_URL}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: always
+
+  db:
+    build:
+      context: .
+      dockerfile: apps/backend/db.Dockerfile
+      args:
+        - VERSION=${VERSION}
+    image: llm-good-db:${VERSION:-latest}
+    expose:
+      - 3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./apps/backend/prisma/init.sh:/docker-entrypoint-initdb.d/init.sh
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
+
+  game-hub:
+    build:
+      context: .
+      dockerfile: apps/game-hub/Dockerfile
+      args:
+        - VERSION=${VERSION}
+    image: llm-good-game-hub:${VERSION:-latest}
+    expose:
+      - 80
+    environment:
+      - NODE_ENV=${NODE_ENV}
+    restart: always
+
+volumes:
+  mysql_data:
