@@ -14,6 +14,7 @@ export default defineConfig({
       { text: '功能', link: '/guide/features' },
       { text: '定价', link: '/guide/pricing' },
       { text: '文档', link: '/guide/getting-started' },
+      { text: '游戏', link: '/guide/snake-game' },
     ],
     sidebar: [
       {
@@ -22,6 +23,12 @@ export default defineConfig({
           { text: '快速开始', link: '/guide/getting-started' },
           { text: '功能详情', link: '/guide/features' },
           { text: '定价方案', link: '/guide/pricing' },
+        ]
+      },
+      {
+        text: '游戏展示',
+        items: [
+          { text: '超级贪吃蛇', link: '/guide/snake-game' },
         ]
       },
       {

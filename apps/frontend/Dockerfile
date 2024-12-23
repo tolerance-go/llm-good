@@ -34,5 +34,10 @@ FROM nginx:alpine
 # 从构建阶段复制构建后的文件
 COPY --from=builder /workspace/apps/frontend/dist/ /usr/share/nginx/html/
 
-# 添加默认配置
-COPY nginx/default.conf /etc/nginx/conf.d/default.conf
+# 添加 nginx 配置
+COPY apps/frontend/nginx.conf /etc/nginx/conf.d/default.conf
+
+# 暴露端口
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]

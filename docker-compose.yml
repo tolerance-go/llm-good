@@ -9,6 +9,7 @@ services:
       - frontend
       - backend
       - website
+      - game-hub
     restart: always
 
   website:
@@ -65,6 +66,16 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: always
+
+  game-hub:
+    build:
+      context: .
+      dockerfile: apps/game-hub/Dockerfile
+    expose:
+      - 80
+    environment:
+      - NODE_ENV=${NODE_ENV}
     restart: always
 
 volumes:
