@@ -1,34 +1,56 @@
-version: '3.8'
-
 services:
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - frontend
+      - backend
+      - website
+    restart: always
+
+  website:
+    build:
+      context: .
+      dockerfile: apps/website/Dockerfile
+    expose:
+      - 80
+    environment:
+      - NODE_ENV=${NODE_ENV}
+    restart: always
+
   frontend:
     build:
-      context: ./apps/frontend
-      dockerfile: Dockerfile
-    ports:
-      - "${FRONTEND_PORT}:${FRONTEND_PORT}"
+      context: .
+      dockerfile: apps/frontend/Dockerfile
+    expose:
+      - 80
     environment:
-      - VITE_API_URL=${VITE_API_URL}
+      - VITE_API_URL=/api
     depends_on:
       - backend
+    restart: always
 
   backend:
     build:
-      context: ./apps/backend
-      dockerfile: Dockerfile
-    ports:
-      - "${BACKEND_PORT}:${BACKEND_PORT}"
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    expose:
+      - ${BACKEND_PORT}
     environment:
-      - NODE_ENV=${NODE_ENV}
+      - NODE_ENV=production
       - DATABASE_URL=${DATABASE_URL}
     depends_on:
       db:
         condition: service_healthy
+    restart: always
 
   db:
     image: mysql:8.0
-    ports:
-      - "${MYSQL_PORT}:3306"
+    expose:
+      - 3306
     environment:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
       - MYSQL_DATABASE=${MYSQL_DATABASE}
@@ -43,6 +65,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: always
 
 volumes:
   mysql_data:

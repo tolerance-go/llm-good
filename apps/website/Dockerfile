@@ -11,16 +11,16 @@ COPY pnpm-workspace.yaml ./
 COPY package.json pnpm-lock.yaml ./
 
 # 复制所有 package.json 文件
-COPY apps/frontend/package.json ./apps/frontend/
+COPY apps/website/package.json ./apps/website/
 
 # 安装工作区依赖
 RUN pnpm install
 
 # 复制源代码
-COPY apps/frontend ./apps/frontend
+COPY apps/website ./apps/website
 
-# 进入 frontend 目录
-WORKDIR /workspace/apps/frontend
+# 进入 website 目录
+WORKDIR /workspace/apps/website
 
 # 安装本地依赖
 RUN pnpm install
@@ -32,7 +32,4 @@ RUN pnpm build
 FROM nginx:alpine
 
 # 从构建阶段复制构建后的文件
-COPY --from=builder /workspace/apps/frontend/dist/ /usr/share/nginx/html/
-
-# 添加默认配置
-COPY nginx/default.conf /etc/nginx/conf.d/default.conf
+COPY --from=builder /workspace/apps/website/.vitepress/dist/ /usr/share/nginx/html/

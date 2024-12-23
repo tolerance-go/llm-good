@@ -10,11 +10,8 @@
     "db:down": "docker compose down db",
     "db:restart": "pnpm db:down && pnpm db:up",
     "db:clean": "docker compose down db -v",
-    "docker:dev": "docker compose up",
-    "docker:dev:build": "docker compose up --build",
-    "docker:dev:detach": "docker compose up -d",
+    "docker:start": "docker compose up -d --build",
     "docker:stop": "docker compose down",
-    "docker:prod": "docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build",
-    "docker:prod:stop": "docker compose -f docker-compose.yml -f docker-compose.prod.yml down"
+    "docker:restart": "pnpm docker:stop && pnpm docker:start"
   }
-} 
+}  

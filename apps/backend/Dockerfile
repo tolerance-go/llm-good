@@ -1,24 +1,36 @@
 FROM node:18-alpine
 
-WORKDIR /app
+# 设置工作目录为项目根目录
+WORKDIR /workspace
 
-# 安装 pnpm
+# 全局安装 pnpm
 RUN npm install -g pnpm
 
-# 复制 package.json 和 lock 文件
+# 复制整个工作区配置
+COPY pnpm-workspace.yaml ./
 COPY package.json pnpm-lock.yaml ./
 
-# 安装依赖
-RUN pnpm install --frozen-lockfile
+# 复制所有 package.json 文件
+COPY apps/backend/package.json ./apps/backend/
+
+# 安装工作区依赖
+RUN pnpm install
 
 # 复制源代码
-COPY . .
+COPY apps/backend ./apps/backend
 
-# 如果需要构建 TypeScript
+# 进入 backend 目录
+WORKDIR /workspace/apps/backend
+
+# 安装本地依赖
+RUN pnpm install
+
+# 生成 Prisma 客户端
+RUN pnpm prisma generate
+
+# 构建应用
 RUN pnpm build
 
-# 暴露端口
-EXPOSE 8000
+EXPOSE ${BACKEND_PORT}
 
-# 启动命令
-CMD ["pnpm", "start"] 
+CMD ["pnpm", "start"]
