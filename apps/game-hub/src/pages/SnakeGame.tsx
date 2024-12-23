@@ -100,6 +100,11 @@ class SnakeScene extends Phaser.Scene {
         const newHead = this.gameObjects.snake[0]
         this.addTeleportEffect(oldHead, newHead)
       }
+
+      // 如果发生自动调整，添加特效
+      if (result.didAutoAdjust) {
+        this.addAutoAdjustEffect(this.gameObjects.snake[0])
+      }
     }
   }
 
@@ -234,6 +239,23 @@ class SnakeScene extends Phaser.Scene {
             appearEffect.destroy()
           }
         })
+      }
+    })
+  }
+
+  private addAutoAdjustEffect(head: Phaser.GameObjects.Rectangle) {
+    // 创建一个临时的视觉效果
+    const effect = this.add.circle(head.x, head.y, 12, 0xffff00, 0.6)
+    
+    // 添加动画效果
+    this.tweens.add({
+      targets: effect,
+      scale: 1.5,
+      alpha: 0,
+      duration: 300,
+      ease: 'Power2',
+      onComplete: () => {
+        effect.destroy()
       }
     })
   }

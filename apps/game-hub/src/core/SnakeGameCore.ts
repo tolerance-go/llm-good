@@ -127,7 +127,8 @@ export class SnakeGameCore {
     newPosition: Position, 
     didEatFood: boolean, 
     isGameOver: boolean,
-    didTeleport: boolean 
+    didTeleport: boolean,
+    didAutoAdjust: boolean
   } {
     const head = { ...this.state.snake[0] }
     
@@ -142,7 +143,15 @@ export class SnakeGameCore {
     if (newY < 0) newY = this.height - this.gridSize
     if (newY >= this.height) newY = 0
 
-    const newPosition = { x: newX, y: newY }
+    let newPosition = { x: newX, y: newY }
+    let didAutoAdjust = false
+
+    // 检查是否需要自动调整位置
+    const adjustedPosition = this.shouldAutoAdjust(newPosition)
+    if (adjustedPosition) {
+      newPosition = adjustedPosition
+      didAutoAdjust = true
+    }
 
     // 检查是否吃到食物
     const didEatFood = this.checkFood(newPosition)
@@ -170,7 +179,8 @@ export class SnakeGameCore {
       newPosition,
       didEatFood,
       isGameOver,
-      didTeleport
+      didTeleport,
+      didAutoAdjust
     }
   }
 
@@ -191,6 +201,50 @@ export class SnakeGameCore {
   private checkCollision(position: Position): boolean {
     return this.state.snake.some(segment => 
       segment.x === position.x && segment.y === position.y)
+  }
+
+  private shouldAutoAdjust(newPosition: Position): Position | null {
+    const head = this.state.snake[0]
+    const food = this.state.food
+    
+    // 如果蛇头和食物在同一直线上，不需要自动调整
+    if (head.x === food.x || head.y === food.y) {
+      return null
+    }
+    
+    // 计算蛇头和食物的距离
+    const distance = Math.abs(newPosition.x - food.x) + Math.abs(newPosition.y - food.y)
+    
+    // 只在接近食物时进行自动调整（距离小于3格）
+    if (distance > this.gridSize * 3) {
+      return null
+    }
+    
+    // 判断是否即将错过食物
+    const willMissFood = (
+      (this.state.direction.x !== 0 && Math.abs(newPosition.y - food.y) === this.gridSize) ||
+      (this.state.direction.y !== 0 && Math.abs(newPosition.x - food.x) === this.gridSize)
+    )
+    
+    if (willMissFood) {
+      // 创建可能的调整位置
+      const adjustedPosition = { ...newPosition }
+      
+      if (this.state.direction.x !== 0) {
+        // 水平移动时，调整Y坐标
+        adjustedPosition.y = food.y
+      } else {
+        // 垂直移动时，调整X坐标
+        adjustedPosition.x = food.x
+      }
+      
+      // 检查调整后的位置是否安全
+      if (!this.checkCollision(adjustedPosition)) {
+        return adjustedPosition
+      }
+    }
+    
+    return null
   }
 
   private onEatFood() {

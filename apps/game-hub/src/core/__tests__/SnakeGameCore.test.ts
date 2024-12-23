@@ -30,7 +30,7 @@ describe('SnakeGameCore - 智能变速系统', () => {
     expect(closeSpeedMultiplier).toBeGreaterThanOrEqual(1.0)
   })
 
-  it('计算与食物的最短距离时应考虑穿墙', () => {
+  it('计算与��物的最短距离时应考虑穿墙', () => {
     game.setState({
       food: { x: 0, y: 0 }
     })
@@ -98,5 +98,57 @@ describe('SnakeGameCore - 穿墙系统', () => {
     
     // 验证游戏没有结束
     expect(result.isGameOver).toBe(false)
+  })
+})
+
+describe('SnakeGameCore - 智能对准系统', () => {
+  let game: SnakeGameCore
+
+  beforeEach(() => {
+    game = new SnakeGameCore(800, 600)
+  })
+
+  it('当蛇即将错过食物时应该自动调整位置', () => {
+    // 设置蛇和食物的位置，使蛇即将错过食物
+    game.setState({
+      snake: [{ x: 200, y: 200 }],
+      food: { x: 220, y: 220 },
+      direction: { x: 1, y: 0 }  // 水平向右移动
+    })
+    
+    const result = game.moveSnake()
+    
+    // 验证是否发生了自动调整
+    expect(result.didAutoAdjust).toBe(true)
+    // 验证调整后的位置是否正确（Y坐标应该调整到食物的高度）
+    expect(result.newPosition.y).toBe(220)
+  })
+
+  it('当蛇和食物在同一直线上时不应该自动调整', () => {
+    // 设置蛇和食物在同一水平线上
+    game.setState({
+      snake: [{ x: 200, y: 200 }],
+      food: { x: 220, y: 200 },
+      direction: { x: 1, y: 0 }
+    })
+    
+    const result = game.moveSnake()
+    
+    // 验证没有发生自动调整
+    expect(result.didAutoAdjust).toBe(false)
+  })
+
+  it('当距离食物较远时不应该自动调整', () => {
+    // 设置蛇和食物距离较远
+    game.setState({
+      snake: [{ x: 200, y: 200 }],
+      food: { x: 400, y: 220 },
+      direction: { x: 1, y: 0 }
+    })
+    
+    const result = game.moveSnake()
+    
+    // 验证没有发生自动调整
+    expect(result.didAutoAdjust).toBe(false)
   })
 }) 
