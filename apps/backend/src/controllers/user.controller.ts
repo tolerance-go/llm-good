@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { UserService } from '../services/user.service';
-import { ValidationError } from '../utils/validation.util';
-import { CreateUserDto, UserResponse } from '../types/user.type';
+import { ValidationError } from '../utils/validation';
+import { CreateUserDto, UserResponse } from '../types/user';
 
 export class UserController {
   private userService: UserService;
@@ -26,7 +26,11 @@ export class UserController {
     } catch (error) {
       if (error instanceof ValidationError) {
         res.status(400).json({ error: error.message });
+      } else if (error instanceof Error) {
+        console.error('Unexpected error:', error);
+        res.status(500).json({ error: error.message });
       } else {
+        console.error('Unknown error:', error);
         res.status(500).json({ error: 'Internal server error' });
       }
     }
@@ -49,9 +53,15 @@ export class UserController {
         createdAt: user.createdAt.toISOString()
       };
 
-      res.json(response);
+      res.status(200).json(response);
     } catch (error) {
-      res.status(500).json({ error: 'Internal server error' });
+      if (error instanceof Error) {
+        console.error('Error fetching user:', error);
+        res.status(500).json({ error: error.message });
+      } else {
+        console.error('Unknown error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+      }
     }
   };
 } 

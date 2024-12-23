@@ -4,6 +4,7 @@ import swaggerUi from 'swagger-ui-express';
 import swaggerJSDoc from 'swagger-jsdoc';
 import { swaggerOptions } from './swagger';
 import userRoutes from './routes/user.route';
+import volcengineRoutes from './routes/volcengine.route';
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -18,6 +19,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // 路由
 app.use('/api/users', userRoutes);
+app.use('/api/volcengine', volcengineRoutes);
 
 /**
  * @swagger
