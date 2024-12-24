@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react'
 import { ChatBox } from '../components/ChatBox'
 
 const meta = {
-  title: 'Components/ChatBox',
+  title: 'Components/聊天框',
   component: ChatBox,
   parameters: {
     layout: 'centered',
@@ -13,7 +13,7 @@ const meta = {
 export default meta
 type Story = StoryObj<typeof meta>
 
-export const Empty: Story = {
+export const 空白对话: Story = {
   args: {
     messages: [],
     isLoading: false,
@@ -26,7 +26,7 @@ export const Empty: Story = {
   },
 }
 
-export const WithMessages: Story = {
+export const 包含消息: Story = {
   args: {
     messages: [
       {
@@ -43,7 +43,7 @@ export const WithMessages: Story = {
       },
       {
         id: '3',
-        content: '当然可以！贪吃蛇游戏的规则很简单：使用方向键控制蛇的移动方向，吃到食物可以增加长度和分数。注意不要���到墙壁或自己的身体哦！',
+        content: '当然可以！贪吃蛇游戏的规则很简单：使用方向键控制蛇的移动方向，吃到食物可以增加长度和分数。注意不要撞到墙壁或自己的身体哦！',
         role: 'assistant',
         timestamp: Date.now(),
       },
@@ -58,9 +58,9 @@ export const WithMessages: Story = {
   },
 }
 
-export const Loading: Story = {
+export const 加载中: Story = {
   args: {
-    ...WithMessages.args,
+    ...包含消息.args,
     isLoading: true,
   },
 } 
