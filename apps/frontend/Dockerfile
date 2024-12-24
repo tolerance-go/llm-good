@@ -29,7 +29,7 @@ RUN pnpm install
 RUN pnpm build
 
 # 使用 nginx 镜像作为基础镜像
-FROM nginx:alpine
+FROM nginx:1.24-alpine
 
 # 从构建阶段复制构建后的文件
 COPY --from=builder /workspace/apps/frontend/dist/ /usr/share/nginx/html/

@@ -29,7 +29,7 @@ RUN pnpm install
 RUN pnpm build
 
 # 生产环境
-FROM nginx:alpine
+FROM nginx:1.24-alpine
 
 # 复制 nginx 配置
 COPY apps/game-hub/nginx.conf /etc/nginx/conf.d/default.conf
