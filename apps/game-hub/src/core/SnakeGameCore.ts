@@ -1,3 +1,5 @@
+import { SNAKE_GAME_CONFIG } from '../config/snakeGameConfig'
+
 export interface Position {
   x: number
   y: number
@@ -16,24 +18,20 @@ export interface GameState {
 
 export class SnakeGameCore {
   private state: GameState
-  private readonly gridSize: number = 20
+  private readonly gridSize: number = SNAKE_GAME_CONFIG.grid.size
   private readonly width: number
   private readonly height: number
 
-  constructor(width: number = 800, height: number = 600) {
+  constructor(width: number = SNAKE_GAME_CONFIG.canvas.width, height: number = SNAKE_GAME_CONFIG.canvas.height) {
     this.width = width
     this.height = height
     this.state = {
-      snake: [
-        { x: 200, y: 200 },
-        { x: 180, y: 200 },
-        { x: 160, y: 200 }
-      ],
+      snake: SNAKE_GAME_CONFIG.gameplay.initialSnake.map(pos => ({ ...pos })),
       food: { x: 0, y: 0 },
       direction: { x: 0, y: 0 },
       score: 0,
       combo: 0,
-      moveInterval: 100,
+      moveInterval: SNAKE_GAME_CONFIG.gameplay.speed.baseInterval,
       isInvincible: false,
       lastFoodTime: 0
     }
@@ -111,14 +109,12 @@ export class SnakeGameCore {
   }
 
   calculateSpeedMultiplier(distance: number): number {
-    // 距离越远，速度越快
     const maxDistance = Math.sqrt(this.width * this.width + this.height * this.height)
     const threshold = maxDistance * 0.5
     
     if (distance > threshold) {
-      return 2.0 // 最大速度是基础速度的2倍
+      return 2.0
     } else {
-      // 在阈值内线性插值
       return 1.0 + (distance / threshold)
     }
   }
@@ -132,11 +128,9 @@ export class SnakeGameCore {
   } {
     const head = { ...this.state.snake[0] }
     
-    // 计算新的头部位置
     let newX = head.x + this.state.direction.x * this.gridSize
     let newY = head.y + this.state.direction.y * this.gridSize
     
-    // 穿墙逻辑
     const didTeleport = this.willTeleport(newX, newY)
     if (newX < 0) newX = this.width - this.gridSize
     if (newX >= this.width) newX = 0
@@ -146,21 +140,16 @@ export class SnakeGameCore {
     let newPosition = { x: newX, y: newY }
     let didAutoAdjust = false
 
-    // 检查是否需要自动调整位置
     const adjustedPosition = this.shouldAutoAdjust(newPosition)
     if (adjustedPosition) {
       newPosition = adjustedPosition
       didAutoAdjust = true
     }
 
-    // 检查是否吃到食物
     const didEatFood = this.checkFood(newPosition)
-
-    // 检查是否游戏结束
     const isGameOver = !this.state.isInvincible && this.checkCollision(newPosition)
 
     if (!isGameOver) {
-      // 更新蛇的位置
       this.state.snake.unshift({ ...newPosition })
       if (!didEatFood) {
         this.state.snake.pop()
@@ -168,11 +157,12 @@ export class SnakeGameCore {
         this.onEatFood()
       }
 
-      // 更新移动速度
       const distanceToFood = this.calculateDistanceToFood(newPosition)
       const speedMultiplier = this.calculateSpeedMultiplier(distanceToFood)
-      this.state.moveInterval = Math.max(40, Math.min(150,
-        100 * (1 / speedMultiplier) - Math.floor(this.state.score / 100) * 5))
+      const { minInterval, maxInterval, baseInterval, scoreSpeedupInterval } = SNAKE_GAME_CONFIG.gameplay.speed
+      
+      this.state.moveInterval = Math.max(minInterval, Math.min(maxInterval,
+        baseInterval * (1 / speedMultiplier) - Math.floor(this.state.score / 100) * scoreSpeedupInterval))
     }
 
     return {
@@ -249,12 +239,14 @@ export class SnakeGameCore {
 
   private onEatFood() {
     const currentTime = Date.now()
-    if (currentTime - this.state.lastFoodTime < 1000) {
+    const { comboTimeWindow, baseScore } = SNAKE_GAME_CONFIG.gameplay.scoring
+    
+    if (currentTime - this.state.lastFoodTime < comboTimeWindow) {
       this.state.combo++
-      this.state.score += 10 * this.state.combo
+      this.state.score += baseScore * this.state.combo
     } else {
       this.state.combo = 1
-      this.state.score += 10
+      this.state.score += baseScore
     }
     this.state.lastFoodTime = currentTime
     this.placeFood()
@@ -273,14 +265,15 @@ export class SnakeGameCore {
   }
 
   activateInvincible(): boolean {
-    if (!this.state.isInvincible && this.state.score >= 100) {
+    const { requiredScore, duration } = SNAKE_GAME_CONFIG.gameplay.abilities.invincible
+    
+    if (!this.state.isInvincible && this.state.score >= requiredScore) {
       this.state.isInvincible = true
-      this.state.score -= 100
+      this.state.score -= requiredScore
       
-      // 5秒后解除无敌
       setTimeout(() => {
         this.state.isInvincible = false
-      }, 5000)
+      }, duration)
       
       return true
     }

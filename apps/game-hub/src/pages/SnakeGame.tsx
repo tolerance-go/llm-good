@@ -1,6 +1,8 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Phaser from 'phaser'
 import { SnakeGameCore } from '../core/SnakeGameCore'
+import { SNAKE_GAME_CONFIG } from '../config/snakeGameConfig'
+import { ConfigTree } from '../components/ConfigTree'
 
 class SnakeScene extends Phaser.Scene {
   private gameObjects: {
@@ -26,48 +28,57 @@ class SnakeScene extends Phaser.Scene {
   }
 
   create() {
-    // 初始化游戏对象
     const state = this.gameCore.getState()
+    const { snakeSize } = SNAKE_GAME_CONFIG.grid
+    const { colors } = SNAKE_GAME_CONFIG.visuals
+    const { score: scoreStyle, combo: comboStyle, speedUp: speedUpStyle } = SNAKE_GAME_CONFIG.visuals.text
     
-    // 创建蛇的身体
     this.gameObjects.snake = state.snake.map(pos => 
-      this.add.rectangle(pos.x, pos.y, 18, 18, 0x00ff00)
+      this.add.rectangle(pos.x, pos.y, snakeSize, snakeSize, colors.snake)
     )
 
-    // 创建食物
     this.gameObjects.food = this.add.rectangle(
       state.food.x,
       state.food.y,
-      18,
-      18,
-      0xff0000
+      snakeSize,
+      snakeSize,
+      colors.food
     )
 
-    // 添加分数显示
-    this.gameObjects.scoreText = this.add.text(16, 16, '分数: 0', {
-      fontSize: '32px',
-      color: '#fff'
-    })
+    this.gameObjects.scoreText = this.add.text(
+      scoreStyle.x,
+      scoreStyle.y,
+      '分数: 0',
+      {
+        fontSize: scoreStyle.fontSize,
+        color: scoreStyle.color
+      }
+    )
 
-    // 添加连击显示
-    this.gameObjects.comboText = this.add.text(16, 56, '连击: x1', {
-      fontSize: '24px',
-      color: '#ffff00'
-    })
+    this.gameObjects.comboText = this.add.text(
+      comboStyle.x,
+      comboStyle.y,
+      '连击: x1',
+      {
+        fontSize: comboStyle.fontSize,
+        color: comboStyle.color
+      }
+    )
     this.gameObjects.comboText.setVisible(false)
 
-    // 添加加速提示
-    this.gameObjects.speedUpText = this.add.text(400, 300, '极速模式！', {
-      fontSize: '48px',
-      color: '#ff0000'
-    })
+    this.gameObjects.speedUpText = this.add.text(
+      speedUpStyle.x,
+      speedUpStyle.y,
+      '极速模式！',
+      {
+        fontSize: speedUpStyle.fontSize,
+        color: speedUpStyle.color
+      }
+    )
     this.gameObjects.speedUpText.setOrigin(0.5)
     this.gameObjects.speedUpText.setVisible(false)
 
-    // 添加键盘控制
     this.input.keyboard.on('keydown', this.handleKeyDown, this)
-
-    // 添加空格键触发无敌模式
     this.input.keyboard.on('keydown-SPACE', () => {
       const activated = this.gameCore.activateInvincible()
       if (activated) {
@@ -141,7 +152,7 @@ class SnakeScene extends Phaser.Scene {
   private updateVisuals() {
     const state = this.gameCore.getState()
 
-    // 更新蛇的位置和外观
+    // 更新蛇的��置和外观
     while (this.gameObjects.snake.length > state.snake.length) {
       const tail = this.gameObjects.snake.pop()
       tail?.destroy()
@@ -185,20 +196,21 @@ class SnakeScene extends Phaser.Scene {
 
   private addMoveEffect(head: Phaser.GameObjects.Rectangle) {
     const state = this.gameCore.getState()
-    // 创建一个临时的视觉效果
-    const effect = this.add.rectangle(head.x, head.y, 18, 18, 
-      state.isInvincible ? 0xffd700 : 0x00ff00)
-    effect.setAlpha(0.5)
+    const { movement } = SNAKE_GAME_CONFIG.visuals.effects
+    const { colors } = SNAKE_GAME_CONFIG.visuals
+    
+    const effect = this.add.rectangle(head.x, head.y, SNAKE_GAME_CONFIG.grid.snakeSize, SNAKE_GAME_CONFIG.grid.snakeSize, 
+      state.isInvincible ? colors.snake : colors.snake)
+    effect.setAlpha(movement.initialAlpha)
 
-    // 根据速度调整特效
-    const speedRatio = 100 / state.moveInterval
+    const speedRatio = SNAKE_GAME_CONFIG.gameplay.speed.baseInterval / state.moveInterval
     const scaleMultiplier = 1 + (speedRatio - 1) * 0.5
 
     this.tweens.add({
       targets: effect,
       alpha: 0,
-      scale: 1.5 * scaleMultiplier,
-      duration: 200,
+      scale: movement.scale * scaleMultiplier,
+      duration: movement.duration,
       ease: 'Power2',
       onComplete: () => {
         effect.destroy()
@@ -207,33 +219,34 @@ class SnakeScene extends Phaser.Scene {
   }
 
   private addTeleportEffect(oldHead: Phaser.GameObjects.Rectangle, newHead: Phaser.GameObjects.Rectangle) {
-    // 在原位置添加消失效果
-    const disappearEffect = this.add.circle(oldHead.x, oldHead.y, 15, 0x00ffff, 0.8)
+    const { teleport } = SNAKE_GAME_CONFIG.visuals.effects
+    const { colors } = SNAKE_GAME_CONFIG.visuals
+
+    const disappearEffect = this.add.circle(oldHead.x, oldHead.y, teleport.size, colors.teleport, teleport.alpha)
     this.tweens.add({
       targets: disappearEffect,
       scale: 0,
       alpha: 0,
-      duration: 200,
+      duration: teleport.duration,
       ease: 'Power2',
       onComplete: () => {
         disappearEffect.destroy()
       }
     })
 
-    // 在新位置添加出现效果
-    const appearEffect = this.add.circle(newHead.x, newHead.y, 15, 0x00ffff, 0)
+    const appearEffect = this.add.circle(newHead.x, newHead.y, teleport.size, colors.teleport, 0)
     appearEffect.setScale(0)
     this.tweens.add({
       targets: appearEffect,
       scale: 1,
-      alpha: 0.8,
-      duration: 200,
+      alpha: teleport.alpha,
+      duration: teleport.duration,
       ease: 'Back.easeOut',
       onComplete: () => {
         this.tweens.add({
           targets: appearEffect,
           alpha: 0,
-          duration: 200,
+          duration: teleport.duration,
           ease: 'Power2',
           onComplete: () => {
             appearEffect.destroy()
@@ -244,15 +257,16 @@ class SnakeScene extends Phaser.Scene {
   }
 
   private addAutoAdjustEffect(head: Phaser.GameObjects.Rectangle) {
-    // 创建一个临时的视觉效果
-    const effect = this.add.circle(head.x, head.y, 12, 0xffff00, 0.6)
+    const { autoAdjust } = SNAKE_GAME_CONFIG.visuals.effects
+    const { colors } = SNAKE_GAME_CONFIG.visuals
+
+    const effect = this.add.circle(head.x, head.y, autoAdjust.size, colors.autoAdjust, autoAdjust.alpha)
     
-    // 添加动画效果
     this.tweens.add({
       targets: effect,
-      scale: 1.5,
+      scale: autoAdjust.scale,
       alpha: 0,
-      duration: 300,
+      duration: autoAdjust.duration,
       ease: 'Power2',
       onComplete: () => {
         effect.destroy()
@@ -277,15 +291,16 @@ class SnakeScene extends Phaser.Scene {
 export function SnakeGame() {
   const gameRef = useRef<HTMLDivElement>(null)
   const game = useRef<Phaser.Game | null>(null)
+  const [showConfig, setShowConfig] = useState(false)
 
   useEffect(() => {
     if (gameRef.current && !game.current) {
       const config: Phaser.Types.Core.GameConfig = {
         type: Phaser.AUTO,
-        width: 800,
-        height: 600,
+        width: SNAKE_GAME_CONFIG.canvas.width,
+        height: SNAKE_GAME_CONFIG.canvas.height,
         parent: gameRef.current,
-        backgroundColor: '#2d2d2d',
+        backgroundColor: SNAKE_GAME_CONFIG.canvas.backgroundColor,
         scene: SnakeScene
       }
 
@@ -304,11 +319,27 @@ export function SnakeGame() {
       <div ref={gameRef} className="border-4 border-gray-300 rounded-lg" />
       <div className="mt-4 space-y-2 text-gray-600">
         <div>使用方向键控制蛇的移动</div>
-        <div>空格键激活无敌模式（需要100分）</div>
+        <div>空格键激活无敌模式（需要{SNAKE_GAME_CONFIG.gameplay.abilities.invincible.requiredScore}分）</div>
         <div>特殊食物效果：</div>
         <div>🟡 金色 - 加速模式</div>
         <div>🔵 青色 - 双倍分数</div>
         <div>🟣 紫色 - 短暂无敌</div>
+      </div>
+      
+      <div className="mt-8 w-full max-w-2xl">
+        <button
+          className="mb-4 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-700 transition-colors"
+          onClick={() => setShowConfig(!showConfig)}
+        >
+          {showConfig ? '隐藏配置' : '显示配置'}
+        </button>
+        
+        {showConfig && (
+          <div className="border rounded-lg p-4 bg-white shadow-sm">
+            <h2 className="text-xl font-bold mb-4">游戏配置</h2>
+            <ConfigTree data={SNAKE_GAME_CONFIG} />
+          </div>
+        )}
       </div>
     </div>
   )
