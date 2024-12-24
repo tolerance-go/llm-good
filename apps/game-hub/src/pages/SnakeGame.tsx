@@ -3,6 +3,7 @@ import Phaser from 'phaser'
 import { SnakeGameCore } from '../core/SnakeGameCore'
 import { SNAKE_GAME_CONFIG } from '../config/snakeGameConfig'
 import { ConfigTree } from '../components/ConfigTree'
+import { ChatBoxContainer } from '../containers/ChatBoxContainer'
 
 class SnakeScene extends Phaser.Scene {
   private gameObjects: {
@@ -152,7 +153,7 @@ class SnakeScene extends Phaser.Scene {
   private updateVisuals() {
     const state = this.gameCore.getState()
 
-    // 更新蛇的��置和外观
+    // 更新蛇的位置和外观
     while (this.gameObjects.snake.length > state.snake.length) {
       const tail = this.gameObjects.snake.pop()
       tail?.destroy()
@@ -316,14 +317,21 @@ export function SnakeGame() {
   return (
     <div className="flex flex-col items-center">
       <h1 className="text-3xl font-bold mb-4">超级贪吃蛇</h1>
-      <div ref={gameRef} className="border-4 border-gray-300 rounded-lg" />
-      <div className="mt-4 space-y-2 text-gray-600">
-        <div>使用方向键控制蛇的移动</div>
-        <div>空格键激活无敌模式（需要{SNAKE_GAME_CONFIG.gameplay.abilities.invincible.requiredScore}分）</div>
-        <div>特殊食物效果：</div>
-        <div>🟡 金色 - 加速模式</div>
-        <div>🔵 青色 - 双倍分数</div>
-        <div>🟣 紫色 - 短暂无敌</div>
+      <div className="flex gap-8">
+        <div>
+          <div ref={gameRef} className="border-4 border-gray-300 rounded-lg" />
+          <div className="mt-4 space-y-2 text-gray-600">
+            <div>使用方向键控制蛇的移动</div>
+            <div>空格键激活无敌模式（需要{SNAKE_GAME_CONFIG.gameplay.abilities.invincible.requiredScore}分）</div>
+            <div>特殊食物效果：</div>
+            <div>🟡 金色 - 加速模式</div>
+            <div>🔵 青色 - 双倍分数</div>
+            <div>🟣 紫色 - 短暂无敌</div>
+          </div>
+        </div>
+        <div>
+          <ChatBoxContainer />
+        </div>
       </div>
       
       <div className="mt-8 w-full max-w-2xl">

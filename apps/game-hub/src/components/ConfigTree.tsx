@@ -1,10 +1,19 @@
 import { useState } from 'react'
-import { SnakeGameConfig } from '../config/snakeGameConfig'
 
-type ConfigValue = string | number | boolean | ConfigObject | ConfigArray
+type ConfigPrimitive = string | number | boolean | null
+type Position = { readonly x: number; readonly y: number }
+type ConfigValue =
+  | ConfigPrimitive
+  | ConfigObject
+  | ConfigArray
+  | readonly ConfigValue[]
+  | readonly Position[]
+  | Position
+
 interface ConfigObject {
-  [key: string]: ConfigValue
+  readonly [key: string]: ConfigValue
 }
+
 type ConfigArray = ConfigValue[]
 
 interface ConfigTreeProps {
@@ -21,13 +30,15 @@ export function ConfigTree({ data, label, depth = 0 }: ConfigTreeProps) {
     return (
       <div className="text-gray-600 my-1" style={{ marginLeft: `${indent}px` }}>
         {label && <span className="text-gray-400">{label}: </span>}
-        <span className="font-mono">{JSON.stringify(data)}</span>
+        <span className="font-mono">{String(data)}</span>
       </div>
     )
   }
 
   const isArray = Array.isArray(data)
-  const items = isArray ? data : Object.entries(data)
+  const items: [string, ConfigValue][] = isArray 
+    ? (data as readonly ConfigValue[]).map((item, index) => [String(index), item])
+    : Object.entries(data as ConfigObject)
 
   return (
     <div className="my-1" style={{ marginLeft: `${indent}px` }}>
@@ -42,23 +53,14 @@ export function ConfigTree({ data, label, depth = 0 }: ConfigTreeProps) {
       )}
       {isExpanded && (
         <div>
-          {isArray
-            ? items.map((item, index) => (
-                <ConfigTree
-                  key={index}
-                  data={item}
-                  label={`[${index}]`}
-                  depth={depth + 1}
-                />
-              ))
-            : items.map(([key, value]) => (
-                <ConfigTree
-                  key={key}
-                  data={value as ConfigValue}
-                  label={key}
-                  depth={depth + 1}
-                />
-              ))}
+          {items.map(([key, value]) => (
+            <ConfigTree
+              key={key}
+              data={value}
+              label={isArray ? `[${key}]` : key}
+              depth={depth + 1}
+            />
+          ))}
         </div>
       )}
     </div>
