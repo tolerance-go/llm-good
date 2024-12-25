@@ -1,4 +1,4 @@
-user ${NGINX_USER:-nginx};
+user nginx;
 worker_processes auto;
 pid /var/run/nginx.pid;
 
