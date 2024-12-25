@@ -44,7 +44,7 @@ else
     sudo yum remove -y docker docker-client docker-client-latest docker-common docker-latest docker-latest-logrotate docker-logrotate docker-engine || true
     
     # 安装必要的依赖
-    echo "正在安装依赖..."
+    echo "��在安装依赖..."
     sudo yum install -y yum-utils device-mapper-persistent-data lvm2 || handle_error "Docker依赖安装失败"
 
     # 添加Docker仓库
@@ -89,47 +89,56 @@ if command_exists docker-compose && [ -x "$(command -v docker-compose)" ]; then
     docker-compose --version
 else
     echo "正在安装/修复 Docker Compose..."
-    # 如果文件存在但没有执行权限，先删除
-    if [ -f "/usr/local/bin/docker-compose" ]; then
-        echo "发现已存在的 Docker Compose，正在删除..."
-        sudo rm -f /usr/local/bin/docker-compose
-    fi
-    
-    # 获取系统架构信息
+    # 获取系统信息，用于生成下载链接
     OS_TYPE=$(uname -s | tr '[:upper:]' '[:lower:]')
     ARCH=$(uname -m)
-    
-    # 根据架构选择正确的文件名
-    case "${ARCH}" in
-        x86_64) ARCH_NAME="x86_64" ;;
-        aarch64) ARCH_NAME="aarch64" ;;
-        armv7l) ARCH_NAME="armhf" ;;
-        *) handle_error "不支持的系统架构: ${ARCH}" ;;
-    esac
-    
-    # 使用腾讯云镜像源下载
     COMPOSE_VERSION="v2.24.5"
-    DOWNLOAD_URL="https://mirrors.cloud.tencent.com/docker-compose/${COMPOSE_VERSION}/docker-compose-${OS_TYPE}-${ARCH}"
-    echo "系统架构: ${OS_TYPE}-${ARCH}"
-    echo "正在从腾讯云镜像源下载 Docker Compose ${COMPOSE_VERSION}..."
+    GITHUB_URL="https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-${OS_TYPE}-${ARCH}"
     
-    # 下载并验证
-    echo "正在下载..."
-    sudo curl -L "$DOWNLOAD_URL" -o /usr/local/bin/docker-compose || {
-        echo "腾讯云镜像下载失败，尝试使用 GitHub 镜像..."
-        GITHUB_MIRROR_URL="https://mirror.ghproxy.com/https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-${OS_TYPE}-${ARCH}"
-        sudo curl -L "$GITHUB_MIRROR_URL" -o /usr/local/bin/docker-compose || handle_error "Docker Compose下载失败"
-    }
-    
-    echo "正在设置执行权限..."
-    sudo chmod +x /usr/local/bin/docker-compose || handle_error "Docker Compose权限设置失败"
-    
-    # 验证下载的文件是否为有效的二进制文件
-    if ! file /usr/local/bin/docker-compose | grep -q "executable"; then
-        echo "下载的文件不是有效的可执行文件，尝试使用备用链接..."
-        BACKUP_URL="https://get.daocloud.io/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-${OS_TYPE}-${ARCH}"
-        sudo curl -L "$BACKUP_URL" -o /usr/local/bin/docker-compose || handle_error "Docker Compose备用下载失败"
+    # 检查本地下载目录
+    LOCAL_COMPOSE_PATH="./downloads/docker-compose"
+    if [ -f "$LOCAL_COMPOSE_PATH" ]; then
+        echo "发现本地预下载的 Docker Compose，正在使用本地文件..."
+        sudo cp "$LOCAL_COMPOSE_PATH" /usr/local/bin/docker-compose || handle_error "Docker Compose 复制失败"
         sudo chmod +x /usr/local/bin/docker-compose || handle_error "Docker Compose权限设置失败"
+    else
+        echo "未找到本地预下载的 Docker Compose (${LOCAL_COMPOSE_PATH})..."
+        echo "尝试从 GitHub 下载..."
+        
+        # 设置下载超时时间为 30 秒
+        if ! sudo curl --max-time 30 -L "$GITHUB_URL" -o /usr/local/bin/docker-compose; then
+            echo "
+===============================================
+下载失败或超时。请按以下步骤手动安装：
+
+1. 在本地电脑上下载 Docker Compose：
+   下载链接：${GITHUB_URL}
+
+2. 在本地创建 downloads 目录：
+   mkdir -p downloads
+
+3. 将下载好的文件重命名为 docker-compose 并放入 downloads 目录
+
+4. 将文件上传到服务器：
+   scp downloads/docker-compose root@服务器IP:$(pwd)/downloads/
+
+5. 然后重新运行此脚本
+
+当前系统信息：
+系统类型：${OS_TYPE}
+系统架构：${ARCH}
+==============================================="
+            exit 1
+        fi
+        
+        echo "下载完成，正在设置执行权限..."
+        sudo chmod +x /usr/local/bin/docker-compose || handle_error "Docker Compose权限设置失败"
+    fi
+    
+    # 验证安装
+    if ! file /usr/local/bin/docker-compose | grep -q "executable"; then
+        echo "安装的文件不是有效的可执行文件，请参考上述说明手动下载安装"
+        exit 1
     fi
 fi
 
