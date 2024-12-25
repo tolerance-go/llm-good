@@ -44,7 +44,7 @@ else
     sudo yum remove -y docker docker-client docker-client-latest docker-common docker-latest docker-latest-logrotate docker-logrotate docker-engine || true
     
     # 安装必要的依赖
-    echo "��在安装依赖..."
+    echo "正在安装依赖..."
     sudo yum install -y yum-utils device-mapper-persistent-data lvm2 || handle_error "Docker依赖安装失败"
 
     # 添加Docker仓库
@@ -89,8 +89,23 @@ if command_exists docker-compose; then
     docker-compose --version
 else
     echo "正在安装Docker Compose..."
-    COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep 'tag_name' | cut -d'"' -f4)
-    sudo curl -L "https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose || handle_error "Docker Compose下载失败"
+    # 获取系统架构信息
+    OS_TYPE=$(uname -s | tr '[:upper:]' '[:lower:]')
+    ARCH=$(uname -m)
+    
+    # 根据架构选择正确的文件名
+    case "${ARCH}" in
+        x86_64) ARCH_NAME="x86_64" ;;
+        aarch64) ARCH_NAME="aarch64" ;;
+        armv7l) ARCH_NAME="armhf" ;;
+        *) handle_error "不支持的系统架构: ${ARCH}" ;;
+    esac
+    
+    # 使用阿里云镜像源下载对应版本
+    DOWNLOAD_URL="https://mirrors.aliyun.com/docker-toolbox/linux/compose/1.29.2/docker-compose-${OS_TYPE}-${ARCH_NAME}"
+    echo "系统架构: ${OS_TYPE}-${ARCH_NAME}"
+    echo "正在从阿里云镜像源下载 Docker Compose..."
+    sudo curl -L "$DOWNLOAD_URL" -o /usr/local/bin/docker-compose || handle_error "Docker Compose下载失败"
     sudo chmod +x /usr/local/bin/docker-compose || handle_error "Docker Compose权限设置失败"
 fi
 
