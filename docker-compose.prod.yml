@@ -12,11 +12,15 @@ services:
       - ./certbot/www:/var/www/certbot
     command: >
       /bin/sh -c "
+      echo \"Current NGINX_USER: $$NGINX_USER\";
       if [ \"$$NGINX_USER\" = \"root\" ]; then
-        sed 's/user nginx;/user root;/' /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf;
-      else
-        cp /etc/nginx/nginx.conf.template /etc/nginx/nginx.conf;
-      fi &&
+        echo \"Switching to root user...\";
+        sed -i 's/user nginx;/user root;/' /etc/nginx/nginx.conf.template;
+        cat /etc/nginx/nginx.conf.template;
+      fi;
+      cp /etc/nginx/nginx.conf.template /etc/nginx/nginx.conf;
+      echo \"Final nginx.conf content:\";
+      cat /etc/nginx/nginx.conf;
       while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\""
     depends_on:
       - frontend
