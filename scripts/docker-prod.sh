@@ -51,6 +51,9 @@ case "$1" in
                 echo "操作已取消"
                 exit 0
             fi
+            
+            echo "清理已存在的证书文件..."
+            rm -rf certbot
         fi
 
         # 提示用户需要停止所有服务
