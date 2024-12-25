@@ -77,6 +77,10 @@ case "$1" in
         export NGINX_USER=root
         NGINX_CONF=acme.conf docker compose -f docker-compose.prod.yml up -d nginx
         
+        # 查看启动日志
+        echo "查看 Nginx 启动日志..."
+        docker compose -f docker-compose.prod.yml logs nginx
+        
         # 等待 Nginx 启动并测试连接
         echo "等待 Nginx 启动并测试连接（最多等待 30 秒）..."
         for i in {1..6}; do
@@ -134,7 +138,7 @@ case "$1" in
         docker compose -f docker-compose.prod.yml exec nginx nginx -T | grep -A 10 "well-known"
         
         echo "4. 测试 ACME 挑战路径访问..."
-        echo "尝试访问: http://localhost/.well-known/acme-challenge/"
+        echo "尝��访问: http://localhost/.well-known/acme-challenge/"
         ACME_TEST=$(curl -v -H "Host: www.unocodex.com" http://localhost/.well-known/acme-challenge/ 2>&1)
         echo "curl 完整响应："
         echo "$ACME_TEST"
@@ -191,7 +195,7 @@ case "$1" in
             echo "诊断信息："
             echo "1. DNS 解析检查："
             echo "   执行: dig www.unocodex.com +short 或 nslookup www.unocodex.com"
-            echo "2. 端口检查："
+            echo "2. 端口检���："
             echo "   执行: curl -v http://www.unocodex.com/.well-known/acme-challenge/"
             echo "3. 查看详细日志："
             docker compose -f docker-compose.prod.yml logs certbot
@@ -220,7 +224,7 @@ case "$1" in
         echo "init-ssl: 初始化 SSL 证书（仅首次部署需要）"
         echo "start:    启动所有服务"
         echo "stop:     停止所有服务"
-        echo "restart:  重启所��服务"
+        echo "restart:  重启所有服务"
         exit 1
         ;;
 esac 
