@@ -59,9 +59,9 @@ case "$1" in
         
         # 设置目录权限
         echo "设置目录权限..."
-        # nginx 用户的标准 UID 是 101，GID 也是 101
-        chown -R 101:101 certbot/www
+        # 确保目录有正确的权限，让 nginx worker 进程可以访问
         chmod -R 755 certbot/www
+        chmod -R 755 certbot/conf
         
         # 停止现有服务
         echo "停止现有服务..."
