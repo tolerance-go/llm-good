@@ -2,6 +2,8 @@ services:
   nginx:
     image: registry.cn-heyuan.aliyuncs.com/llm-good/nginx:${VERSION}
     user: ${NGINX_USER:-nginx}
+    environment:
+      - NGINX_USER=${NGINX_USER:-nginx}
     ports:
       - "80:80"
       - "443:443"
