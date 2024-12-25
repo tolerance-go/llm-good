@@ -74,7 +74,8 @@ case "$1" in
         
         # 使用 acme.conf 启动 nginx
         echo "启动 Nginx 服务（SSL 验证模式）..."
-        NGINX_CONF=acme.conf NGINX_USER=root docker compose -f docker-compose.prod.yml up -d nginx
+        export NGINX_USER=root
+        NGINX_CONF=acme.conf docker compose -f docker-compose.prod.yml up -d nginx
         
         # 等待 Nginx 启动并测试连接
         echo "等待 Nginx 启动并测试连接（最多等待 30 秒）..."
@@ -219,7 +220,7 @@ case "$1" in
         echo "init-ssl: 初始化 SSL 证书（仅首次部署需要）"
         echo "start:    启动所有服务"
         echo "stop:     停止所有服务"
-        echo "restart:  重启所有服务"
+        echo "restart:  重启所��服务"
         exit 1
         ;;
 esac 
