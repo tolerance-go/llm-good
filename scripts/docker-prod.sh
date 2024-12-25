@@ -167,7 +167,6 @@ case "$1" in
             --email yarnb@qq.com \
             --agree-tos \
             --no-eff-email \
-            --force-renewal \
             --verbose \
             --debug
         
