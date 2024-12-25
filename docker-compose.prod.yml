@@ -14,26 +14,28 @@ services:
       - ./certbot/www:/var/www/certbot
     command: >
       /bin/sh -c "
-      echo \"Environment variables:\";
-      env | grep NGINX;
-      echo \"Current user:\";
+      echo \"所有环境变量:\";
+      env | sort;
+      echo \"\nNginx 相关环境变量:\";
+      echo \"NGINX_USER=$${NGINX_USER}\";
+      echo \"NGINX_CONF=$${NGINX_CONF}\";
+      echo \"\n当前用户:\";
       id;
-      echo \"Current NGINX_USER: $$NGINX_USER\";
       if [ \"$$NGINX_USER\" = \"root\" ]; then
-        echo \"Switching nginx.conf to root user...\";
+        echo \"\n切换到 root 用户...\";
         cp /etc/nginx/nginx.conf.template /etc/nginx/nginx.conf;
         sed -i 's/user nginx;/user root;/' /etc/nginx/nginx.conf;
-        echo \"Modified nginx.conf:\";
+        echo \"\n修改后的 nginx.conf:\";
         cat /etc/nginx/nginx.conf;
-        echo \"Changing directory ownership...\";
+        echo \"\n修改目录所有者...\";
         chown -R root:root /var/www/certbot;
       else
-        echo \"Using default nginx user...\";
+        echo \"\n使用默认 nginx 用户...\";
         cp /etc/nginx/nginx.conf.template /etc/nginx/nginx.conf;
       fi;
-      echo \"Directory permissions:\";
+      echo \"\n目录权限:\";
       ls -la /var/www/certbot;
-      echo \"Starting nginx...\";
+      echo \"\n启动 nginx...\";
       nginx -g \"daemon off;\""
     depends_on:
       - frontend
