@@ -159,7 +159,9 @@ case "$1" in
         echo "开始申请 SSL 证书..."
         echo "注意：接下来 Let's Encrypt 将进行真正的域名验证..."
         
-        docker compose -f docker-compose.prod.yml run --rm certbot \
+        # 使用 --entrypoint="" 覆盖默认的入口点命令，因为初始化时不需要自动续期功能
+        # 移除 --force-renewal 参数，因为这是首次申请证书，不需要强制续期
+        docker compose -f docker-compose.prod.yml run --rm --entrypoint="" certbot \
             certbot certonly \
             --webroot \
             -w /var/www/certbot \
