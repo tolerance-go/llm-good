@@ -74,8 +74,7 @@ case "$1" in
         
         # 使用 acme.conf 启动 nginx
         echo "启动 Nginx 服务（SSL 验证模式）..."
-        export NGINX_USER=root
-        NGINX_CONF=acme.conf docker compose -f docker-compose.prod.yml up -d nginx
+        NGINX_USER=root NGINX_CONF=acme.conf docker compose -f docker-compose.prod.yml up -d nginx
         
         # 查看启动日志
         echo "查看 Nginx 启动日志..."
@@ -138,7 +137,7 @@ case "$1" in
         docker compose -f docker-compose.prod.yml exec nginx nginx -T | grep -A 10 "well-known"
         
         echo "4. 测试 ACME 挑战路径访问..."
-        echo "尝��访问: http://localhost/.well-known/acme-challenge/"
+        echo "尝试访问: http://localhost/.well-known/acme-challenge/"
         ACME_TEST=$(curl -v -H "Host: www.unocodex.com" http://localhost/.well-known/acme-challenge/ 2>&1)
         echo "curl 完整响应："
         echo "$ACME_TEST"
@@ -195,7 +194,7 @@ case "$1" in
             echo "诊断信息："
             echo "1. DNS 解析检查："
             echo "   执行: dig www.unocodex.com +short 或 nslookup www.unocodex.com"
-            echo "2. 端口检���："
+            echo "2. 端口检查："
             echo "   执行: curl -v http://www.unocodex.com/.well-known/acme-challenge/"
             echo "3. 查看详细日志："
             docker compose -f docker-compose.prod.yml logs certbot
