@@ -64,31 +64,56 @@ case "$1" in
         echo "启动 Nginx 服务..."
         docker compose -f docker-compose.prod.yml up -d nginx
         
-        # 等待 nginx 启动
-        echo "等待 Nginx 启动..."
+        # 等待 nginx 启动并测试连接
+        echo "等待 Nginx 启动并测试连接..."
         sleep 5
+        
+        # 测试 Nginx 是否正常运行
+        echo "测试 Nginx 状态..."
+        if ! curl -s -o /dev/null http://localhost/.well-known/acme-challenge/; then
+            echo "错误: Nginx 未正常响应 /.well-known/acme-challenge/ 路径"
+            echo "请检查 Nginx 配置和日志"
+            docker compose -f docker-compose.prod.yml logs nginx
+            exit 1
+        fi
+        
+        # 清理可能存在的旧的验证文件
+        echo "清理旧的验证文件..."
+        rm -rf certbot/www/.well-known/acme-challenge/*
         
         # 申请 SSL 证书
         echo "申请 SSL 证书..."
-        docker compose -f docker-compose.prod.yml run --rm certbot certbot certonly \
+        echo "注意：如果域名未正确解析到服务器，此步骤可能会失败"
+        
+        docker compose -f docker-compose.prod.yml run --rm certbot \
+            certbot certonly \
             --webroot \
             -w /var/www/certbot \
             -d www.unocodex.com \
             --email yarnb@qq.com \
             --agree-tos \
-            --no-eff-email
+            --no-eff-email \
+            --force-renewal \
+            --verbose
         
-        if [ $? -eq 0 ]; then
+        CERT_EXIT_CODE=$?
+        
+        if [ $CERT_EXIT_CODE -eq 0 ]; then
             echo "SSL 证书申请成功！"
             echo "启动所有服务..."
             docker compose -f docker-compose.prod.yml up -d
             echo "完成！您的网站现在应该可以通过 HTTPS 访问了。"
+            echo "可以通过以下命令查看证书信息："
+            echo "docker compose -f docker-compose.prod.yml exec nginx ls -la /etc/letsencrypt/live/www.unocodex.com/"
         else
-            echo "错误: SSL 证书申请失败"
+            echo "错误: SSL 证书申请失败 (错误代码: $CERT_EXIT_CODE)"
             echo "请检查："
             echo "1. 域名 www.unocodex.com 是否正确解析到服务器"
             echo "2. 80 端口是否已开放"
-            echo "3. 查看详细日志：docker compose -f docker-compose.prod.yml logs certbot"
+            echo "3. 是否可以从外网访问 http://www.unocodex.com/.well-known/acme-challenge/"
+            echo "4. 查看详细日志："
+            docker compose -f docker-compose.prod.yml logs certbot
+            docker compose -f docker-compose.prod.yml logs nginx
             exit 1
         fi
         ;;
