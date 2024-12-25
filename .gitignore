@@ -52,4 +52,6 @@ coverage/
 .vercel
 .netlify 
 
-downloads/
+# downloads 文件夹配置
+downloads/*
+!downloads/.gitkeep
