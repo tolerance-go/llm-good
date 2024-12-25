@@ -13,8 +13,12 @@ fi
 
 # 检查命令参数
 if [ -z "$1" ]; then
-    echo "错误: 必须提供操作命令 (start|stop|restart)"
-    echo "使用方法: ./docker-prod.sh start|stop|restart"
+    echo "错误: 必须提供操作命令 (init-ssl|start|stop|restart)"
+    echo "使用方法: ./docker-prod.sh init-ssl|start|stop|restart"
+    echo "init-ssl: 初始化 SSL 证书（仅首次部署需要）"
+    echo "start:    启动所有服务"
+    echo "stop:     停止所有服务"
+    echo "restart:  重启所有服务"
     exit 1
 fi
 
@@ -35,6 +39,59 @@ export VERSION
 echo "使用版本号: $VERSION"
 
 case "$1" in
+    init-ssl)
+        echo "开始初始化 SSL 证书..."
+        
+        # 检查是否已存在证书
+        if [ -d "certbot/conf/live/www.unocodex.com" ]; then
+            echo "警告: SSL 证书目录已存在，是否继续？[y/N]"
+            read -r response
+            if [[ ! "$response" =~ ^[Yy]$ ]]; then
+                echo "操作已取消"
+                exit 0
+            fi
+        fi
+        
+        # 创建 certbot 所需目录
+        echo "创建证书目录..."
+        mkdir -p certbot/conf certbot/www
+        
+        # 停止现有服务
+        echo "停止现有服务..."
+        docker compose -f docker-compose.prod.yml down
+        
+        # 启动 nginx 服务（用于域名验证）
+        echo "启动 Nginx 服务..."
+        docker compose -f docker-compose.prod.yml up -d nginx
+        
+        # 等待 nginx 启动
+        echo "等待 Nginx 启动..."
+        sleep 5
+        
+        # 申请 SSL 证书
+        echo "申请 SSL 证书..."
+        docker compose -f docker-compose.prod.yml run --rm certbot certbot certonly \
+            --webroot \
+            -w /var/www/certbot \
+            -d www.unocodex.com \
+            --email yarnb@qq.com \
+            --agree-tos \
+            --no-eff-email
+        
+        if [ $? -eq 0 ]; then
+            echo "SSL 证书申请成功！"
+            echo "启动所有服务..."
+            docker compose -f docker-compose.prod.yml up -d
+            echo "完成！您的网站现在应该可以通过 HTTPS 访问了。"
+        else
+            echo "错误: SSL 证书申请失败"
+            echo "请检查："
+            echo "1. 域名 www.unocodex.com 是否正确解析到服务器"
+            echo "2. 80 端口是否已开放"
+            echo "3. 查看详细日志：docker compose -f docker-compose.prod.yml logs certbot"
+            exit 1
+        fi
+        ;;
     start)
         docker compose -f docker-compose.prod.yml up -d
         ;;
@@ -47,7 +104,11 @@ case "$1" in
         ;;
     *)
         echo "错误: 无效的命令"
-        echo "使用方法: ./docker-prod.sh start|stop|restart"
+        echo "使用方法: ./docker-prod.sh init-ssl|start|stop|restart"
+        echo "init-ssl: 初始化 SSL 证书（仅首次部署需要）"
+        echo "start:    启动所有服务"
+        echo "stop:     停止所有服务"
+        echo "restart:  重启所有服务"
         exit 1
         ;;
 esac 

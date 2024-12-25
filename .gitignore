@@ -55,3 +55,6 @@ coverage/
 # downloads 文件夹配置
 downloads/*
 !downloads/.gitkeep
+
+# SSL certificates
+certbot/

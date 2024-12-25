@@ -5,6 +5,7 @@ LABEL version=$VERSION
 
 COPY nginx/default.conf /etc/nginx/conf.d/default.conf
 
-EXPOSE 80
+# 同时暴露 HTTP 和 HTTPS 端口
+EXPOSE 80 443
 
-CMD ["nginx", "-g", "daemon off;"] 
+CMD ["nginx", "-g", "daemon off;"]
