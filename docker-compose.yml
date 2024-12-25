@@ -1,6 +1,11 @@
 services:
   nginx:
-    image: nginx:alpine
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile
+      args:
+        - VERSION=${VERSION}
+    image: llm-good-nginx:${VERSION:-latest}
     ports:
       - "80:80"
     volumes:
@@ -16,6 +21,9 @@ services:
     build:
       context: .
       dockerfile: apps/website/Dockerfile
+      args:
+        - VERSION=${VERSION}
+    image: llm-good-website:${VERSION:-latest}
     expose:
       - 80
     environment:
@@ -26,6 +34,9 @@ services:
     build:
       context: .
       dockerfile: apps/frontend/Dockerfile
+      args:
+        - VERSION=${VERSION}
+    image: llm-good-frontend:${VERSION:-latest}
     expose:
       - 80
     environment:
@@ -38,6 +49,9 @@ services:
     build:
       context: .
       dockerfile: apps/backend/Dockerfile
+      args:
+        - VERSION=${VERSION}
+    image: llm-good-backend:${VERSION:-latest}
     expose:
       - ${BACKEND_PORT}
     environment:
@@ -49,7 +63,12 @@ services:
     restart: always
 
   db:
-    image: mysql:8.0
+    build:
+      context: .
+      dockerfile: apps/backend/db.Dockerfile
+      args:
+        - VERSION=${VERSION}
+    image: llm-good-db:${VERSION:-latest}
     expose:
       - 3306
     environment:
@@ -72,6 +91,9 @@ services:
     build:
       context: .
       dockerfile: apps/game-hub/Dockerfile
+      args:
+        - VERSION=${VERSION}
+    image: llm-good-game-hub:${VERSION:-latest}
     expose:
       - 80
     environment:

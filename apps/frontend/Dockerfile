@@ -1,4 +1,4 @@
-FROM node:18-alpine as builder
+FROM node:20-alpine as builder
 
 # 设置工作目录为项目根目录
 WORKDIR /workspace
