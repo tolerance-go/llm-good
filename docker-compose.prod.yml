@@ -1,6 +1,7 @@
 services:
   nginx:
     image: registry.cn-heyuan.aliyuncs.com/llm-good/nginx:${VERSION}
+    user: root
     ports:
       - "80:80"
       - "443:443"

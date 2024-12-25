@@ -59,9 +59,14 @@ case "$1" in
         
         # 设置目录权限
         echo "设置目录权限..."
-        # 确保目录有正确的权限，让 nginx worker 进程可以访问
+        # 确保目录有正确的权限
         chmod -R 755 certbot/www
         chmod -R 755 certbot/conf
+        
+        # 在 acme-challenge 目录中创建测试文件
+        echo "创建测试文件..."
+        echo "acme-challenge-test" > certbot/www/.well-known/acme-challenge/test.txt
+        chmod 644 certbot/www/.well-known/acme-challenge/test.txt
         
         # 停止现有服务
         echo "停止现有服务..."
@@ -100,6 +105,18 @@ case "$1" in
         
         echo "2. 检查 Nginx 容器中的目录..."
         docker compose -f docker-compose.prod.yml exec nginx ls -la /var/www/certbot/.well-known/acme-challenge/
+        
+        echo "2.1 检查 Nginx 容器中的用户信息..."
+        docker compose -f docker-compose.prod.yml exec nginx id nginx
+        
+        echo "2.2 检查目录挂载情况..."
+        docker compose -f docker-compose.prod.yml exec nginx mount | grep certbot
+        
+        echo "2.3 检查完整目录权限链..."
+        docker compose -f docker-compose.prod.yml exec nginx sh -c "ls -la /var/www && ls -la /var/www/certbot && ls -la /var/www/certbot/.well-known"
+        
+        echo "2.4 检查 Nginx 错误日志..."
+        docker compose -f docker-compose.prod.yml exec nginx tail -n 50 /var/log/nginx/error.log
         
         echo "3. 检查 Nginx 配置..."
         docker compose -f docker-compose.prod.yml exec nginx nginx -T | grep -A 10 "well-known"
