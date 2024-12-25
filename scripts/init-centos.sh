@@ -44,7 +44,7 @@ else
     sudo yum remove -y docker docker-client docker-client-latest docker-common docker-latest docker-latest-logrotate docker-logrotate docker-engine || true
     
     # 安装必要的依赖
-    echo "��在安装依赖..."
+    echo "正在安装依赖..."
     sudo yum install -y yum-utils device-mapper-persistent-data lvm2 || handle_error "Docker依赖安装失败"
 
     # 添加Docker仓库
@@ -107,12 +107,30 @@ else
         *) handle_error "不支持的系统架构: ${ARCH}" ;;
     esac
     
-    # 使用阿里云镜像源下载对应版本
-    DOWNLOAD_URL="https://mirrors.aliyun.com/docker-toolbox/linux/compose/1.29.2/docker-compose-${OS_TYPE}-${ARCH_NAME}"
-    echo "系统架构: ${OS_TYPE}-${ARCH_NAME}"
-    echo "正在从阿里云镜像源下载 Docker Compose..."
-    sudo curl -L "$DOWNLOAD_URL" -o /usr/local/bin/docker-compose || handle_error "Docker Compose下载失败"
+    # 使用腾讯云镜像源下载
+    COMPOSE_VERSION="v2.24.5"
+    DOWNLOAD_URL="https://mirrors.cloud.tencent.com/docker-compose/${COMPOSE_VERSION}/docker-compose-${OS_TYPE}-${ARCH}"
+    echo "系统架构: ${OS_TYPE}-${ARCH}"
+    echo "正在从腾讯云镜像源下载 Docker Compose ${COMPOSE_VERSION}..."
+    
+    # 下载并验证
+    echo "正在下载..."
+    sudo curl -L "$DOWNLOAD_URL" -o /usr/local/bin/docker-compose || {
+        echo "腾讯云镜像下载失败，尝试使用 GitHub 镜像..."
+        GITHUB_MIRROR_URL="https://mirror.ghproxy.com/https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-${OS_TYPE}-${ARCH}"
+        sudo curl -L "$GITHUB_MIRROR_URL" -o /usr/local/bin/docker-compose || handle_error "Docker Compose下载失败"
+    }
+    
+    echo "正在设置执行权限..."
     sudo chmod +x /usr/local/bin/docker-compose || handle_error "Docker Compose权限设置失败"
+    
+    # 验证下载的文件是否为有效的二进制文件
+    if ! file /usr/local/bin/docker-compose | grep -q "executable"; then
+        echo "下载的文件不是有效的可执行文件，尝试使用备用链接..."
+        BACKUP_URL="https://get.daocloud.io/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-${OS_TYPE}-${ARCH}"
+        sudo curl -L "$BACKUP_URL" -o /usr/local/bin/docker-compose || handle_error "Docker Compose备用下载失败"
+        sudo chmod +x /usr/local/bin/docker-compose || handle_error "Docker Compose权限设置失败"
+    fi
 fi
 
 # 验证所有安装
