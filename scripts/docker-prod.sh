@@ -60,9 +60,9 @@ case "$1" in
         echo "停止现有服务..."
         docker compose -f docker-compose.prod.yml down
         
-        # 启动 nginx 服务（用于域名验证）
-        echo "启动 Nginx 服务..."
-        docker compose -f docker-compose.prod.yml up -d nginx
+        # 使用 acme.conf 启动 nginx
+        echo "启动 Nginx 服务（SSL 验证模式）..."
+        NGINX_CONF=acme.conf docker compose -f docker-compose.prod.yml up -d nginx
         
         # 等待 nginx 启动并测试连接
         echo "等待 Nginx 启动并测试连接..."
@@ -70,9 +70,11 @@ case "$1" in
         
         # 测试 Nginx 是否正常运行
         echo "测试 Nginx 状态..."
-        if ! curl -s -o /dev/null http://localhost/.well-known/acme-challenge/; then
+        if ! curl -s -o /dev/null -H "Host: www.unocodex.com" http://localhost/.well-known/acme-challenge/; then
             echo "错误: Nginx 未正常响应 /.well-known/acme-challenge/ 路径"
-            echo "请检查 Nginx 配置和日志"
+            echo "请检查："
+            echo "1. Nginx 配置是否正确"
+            echo "2. 80 端口是否已开放"
             docker compose -f docker-compose.prod.yml logs nginx
             exit 1
         fi
@@ -100,7 +102,8 @@ case "$1" in
         
         if [ $CERT_EXIT_CODE -eq 0 ]; then
             echo "SSL 证书申请成功！"
-            echo "启动所有服务..."
+            echo "切换到生产配置并启动所有服务..."
+            docker compose -f docker-compose.prod.yml down
             docker compose -f docker-compose.prod.yml up -d
             echo "完成！您的网站现在应该可以通过 HTTPS 访问了。"
             echo "可以通过以下命令查看证书信息："
