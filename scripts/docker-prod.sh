@@ -95,7 +95,21 @@ case "$1" in
         
         # 预检查 ACME 挑战路径是否可访问
         echo "预检查: 验证 ACME 挑战路径是否已正确配置..."
-        ACME_TEST=$(curl -s -I -H "Host: www.unocodex.com" http://localhost/.well-known/acme-challenge/)
+        echo "1. 检查 certbot/www 目录权限..."
+        ls -la certbot/www/.well-known/acme-challenge/
+        
+        echo "2. 检查 Nginx 容器中的目录..."
+        docker compose -f docker-compose.prod.yml exec nginx ls -la /var/www/certbot/.well-known/acme-challenge/
+        
+        echo "3. 检查 Nginx 配置..."
+        docker compose -f docker-compose.prod.yml exec nginx nginx -T | grep -A 10 "well-known"
+        
+        echo "4. 测试 ACME 挑战路径访问..."
+        echo "尝试访问: http://localhost/.well-known/acme-challenge/"
+        ACME_TEST=$(curl -v -H "Host: www.unocodex.com" http://localhost/.well-known/acme-challenge/ 2>&1)
+        echo "curl 完整响应："
+        echo "$ACME_TEST"
+        
         if ! echo "$ACME_TEST" | grep -q "200 OK"; then
             echo "错误: ACME 挑战路径配置检查失败"
             echo "这意味着 Let's Encrypt 可能无法进行域名所有权验证"
