@@ -44,7 +44,7 @@ else
     sudo yum remove -y docker docker-client docker-client-latest docker-common docker-latest docker-latest-logrotate docker-logrotate docker-engine || true
     
     # 安装必要的依赖
-    echo "正在安装依赖..."
+    echo "��在安装依赖..."
     sudo yum install -y yum-utils device-mapper-persistent-data lvm2 || handle_error "Docker依赖安装失败"
 
     # 添加Docker仓库
@@ -84,11 +84,17 @@ EOF
 fi
 
 # 检查并安装Docker Compose
-if command_exists docker-compose; then
+if command_exists docker-compose && [ -x "$(command -v docker-compose)" ]; then
     echo "Docker Compose 已安装，当前版本："
     docker-compose --version
 else
-    echo "正在安装Docker Compose..."
+    echo "正在安装/修复 Docker Compose..."
+    # 如果文件存在但没有执行权限，先删除
+    if [ -f "/usr/local/bin/docker-compose" ]; then
+        echo "发现已存在的 Docker Compose，正在删除..."
+        sudo rm -f /usr/local/bin/docker-compose
+    fi
+    
     # 获取系统架构信息
     OS_TYPE=$(uname -s | tr '[:upper:]' '[:lower:]')
     ARCH=$(uname -m)
