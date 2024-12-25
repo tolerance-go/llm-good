@@ -20,7 +20,8 @@
     "docker:push:game-hub": "cross-env VERSION=%npm_package_version% docker tag llm-good-game-hub:%npm_package_version% registry.cn-heyuan.aliyuncs.com/llm-good/game-hub:%npm_package_version% && docker push registry.cn-heyuan.aliyuncs.com/llm-good/game-hub:%npm_package_version%",
     "docker:push:nginx": "cross-env VERSION=%npm_package_version% docker tag llm-good-nginx:%npm_package_version% registry.cn-heyuan.aliyuncs.com/llm-good/nginx:%npm_package_version% && docker push registry.cn-heyuan.aliyuncs.com/llm-good/nginx:%npm_package_version%",
     "docker:push:db": "cross-env VERSION=%npm_package_version% docker tag llm-good-db:%npm_package_version% registry.cn-heyuan.aliyuncs.com/llm-good/db:%npm_package_version% && docker push registry.cn-heyuan.aliyuncs.com/llm-good/db:%npm_package_version%",
-    "docker:push": "pnpm docker:push:nginx && pnpm docker:push:db && pnpm docker:push:website && pnpm docker:push:frontend && pnpm docker:push:backend && pnpm docker:push:game-hub"
+    "docker:push": "pnpm docker:push:nginx && pnpm docker:push:db && pnpm docker:push:website && pnpm docker:push:frontend && pnpm docker:push:backend && pnpm docker:push:game-hub",
+    "docker:deploy": "pnpm docker:build && pnpm docker:push"
   },
   "devDependencies": {
     "cross-env": "^7.0.3"
