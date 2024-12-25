@@ -44,12 +44,15 @@ else
     sudo yum remove -y docker docker-client docker-client-latest docker-common docker-latest docker-latest-logrotate docker-logrotate docker-engine || true
     
     # 安装必要的依赖
-    echo "正在安装依赖..."
+    echo "��在安装依赖..."
     sudo yum install -y yum-utils device-mapper-persistent-data lvm2 || handle_error "Docker依赖安装失败"
 
     # 添加Docker仓库
     echo "正在添加Docker仓库..."
-    sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo || handle_error "Docker仓库添加失败"
+    sudo yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo || handle_error "Docker仓库添加失败"
+    
+    # 替换仓库地址为阿里云镜像
+    sudo sed -i 's+download.docker.com+mirrors.aliyun.com/docker-ce+' /etc/yum.repos.d/docker-ce.repo
 
     # 安装Docker
     sudo yum install -y docker-ce docker-ce-cli containerd.io || handle_error "Docker安装失败"
