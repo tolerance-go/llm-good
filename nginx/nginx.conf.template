@@ -1,4 +1,6 @@
+# 默认使用 nginx 用户
 user nginx;
+
 worker_processes auto;
 pid /var/run/nginx.pid;
 
