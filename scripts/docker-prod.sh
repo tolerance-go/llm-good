@@ -56,6 +56,11 @@ case "$1" in
         echo "初始化目录结构..."
         rm -rf certbot/conf/* certbot/www/*
         mkdir -p certbot/conf certbot/www/.well-known/acme-challenge
+        
+        # 设置目录权限
+        echo "设置目录权限..."
+        # nginx 用户的标准 UID 是 101，GID 也是 101
+        chown -R 101:101 certbot/www
         chmod -R 755 certbot/www
         
         # 停止现有服务
