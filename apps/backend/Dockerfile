@@ -22,6 +22,9 @@ COPY apps/backend ./apps/backend
 # 进入 backend 目录
 WORKDIR /workspace/apps/backend
 
+# 添加执行权限到启动脚本
+RUN chmod +x start.sh
+
 # 安装本地依赖
 RUN pnpm install
 
@@ -33,4 +36,5 @@ RUN pnpm build
 
 EXPOSE ${BACKEND_PORT}
 
-CMD ["pnpm", "start"]
+# 使用启动脚本替代直接启动命令
+CMD ["./start.sh"]
