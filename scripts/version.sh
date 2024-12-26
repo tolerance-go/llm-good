@@ -46,7 +46,7 @@ parse_version() {
     fi
 }
 
-# 计算新版本号
+# 计算��版本号
 calculate_new_version() {
     local current_version=$1
     local has_breaking_change=false
@@ -139,7 +139,7 @@ update_package_version() {
     local package_json
     package_json=$(git rev-parse --show-toplevel)/package.json
 
-    # 使用临时���件来更新 package.json
+    # 使用临时文件来更新 package.json
     local temp_file
     temp_file=$(mktemp)
     jq ".version = \"$version\"" "$package_json" > "$temp_file"
@@ -172,8 +172,21 @@ update_changelog() {
     mv "$temp_file" "$changelog_file"
 }
 
+# 检查工作区状态
+check_working_tree() {
+    if ! git diff --quiet HEAD; then
+        print_red "错误: 工作区不干净，请先提交或储藏您的更改"
+        print_yellow "未提交的更改:"
+        git status -s
+        exit 1
+    fi
+}
+
 # 主流程
 main() {
+    # 检查工作区状态
+    check_working_tree
+
     # 获取最近的 tag
     print_green "正在获取最近的标签..."
     latest_tag=$(get_latest_tag)
