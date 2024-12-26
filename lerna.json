@@ -1,0 +1,31 @@
+{
+  "$schema": "node_modules/lerna/schemas/lerna-schema.json",
+  "version": "0.1.0",
+  "npmClient": "pnpm",
+  "command": {
+    "version": {
+      "conventionalCommits": true,
+      "message": "chore(release): publish %s",
+      "changelogPreset": "angular",
+      "changelog": true,
+      "syncWorkspaceLock": true,
+      "exact": true,
+      "private": false,
+      "forcePublish": true
+    },
+    "publish": {
+      "message": "chore(release): publish %s",
+      "conventionalCommits": true
+    }
+  },
+  "packages": [
+    "apps/*"
+  ],
+  "ignoreChanges": [
+    "**/*.md",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx"
+  ]
+}

@@ -1,10 +1,54 @@
 {
-  "name": "my-monorepo",
-  "version": "1.0.0",
+  "name": "llm-good",
+  "version": "0.3.5",
   "private": true,
   "scripts": {
     "dev": "pnpm -r dev",
     "build": "pnpm -r build",
-    "test": "pnpm -r test"
+    "test": "pnpm -r test",
+    "db:up": "docker compose up db -d",
+    "db:down": "docker compose down db",
+    "db:restart": "pnpm db:down && pnpm db:up",
+    "db:clean": "docker compose down db -v",
+    "docker:start": "docker compose up -d --build",
+    "docker:stop": "docker compose down",
+    "docker:restart": "pnpm docker:stop && pnpm docker:start",
+    "docker:build": "cross-env VERSION=%npm_package_version% docker compose build --build-arg VERSION=%npm_package_version%",
+    "docker:push:website": "cross-env VERSION=%npm_package_version% docker tag llm-good-website:%npm_package_version% registry.cn-heyuan.aliyuncs.com/llm-good/website:%npm_package_version% && docker push registry.cn-heyuan.aliyuncs.com/llm-good/website:%npm_package_version%",
+    "docker:push:frontend": "cross-env VERSION=%npm_package_version% docker tag llm-good-frontend:%npm_package_version% registry.cn-heyuan.aliyuncs.com/llm-good/frontend:%npm_package_version% && docker push registry.cn-heyuan.aliyuncs.com/llm-good/frontend:%npm_package_version%",
+    "docker:push:backend": "cross-env VERSION=%npm_package_version% docker tag llm-good-backend:%npm_package_version% registry.cn-heyuan.aliyuncs.com/llm-good/backend:%npm_package_version% && docker push registry.cn-heyuan.aliyuncs.com/llm-good/backend:%npm_package_version%",
+    "docker:push:game-hub": "cross-env VERSION=%npm_package_version% docker tag llm-good-game-hub:%npm_package_version% registry.cn-heyuan.aliyuncs.com/llm-good/game-hub:%npm_package_version% && docker push registry.cn-heyuan.aliyuncs.com/llm-good/game-hub:%npm_package_version%",
+    "docker:push:game-maker": "cross-env VERSION=%npm_package_version% docker tag llm-good-game-maker:%npm_package_version% registry.cn-heyuan.aliyuncs.com/llm-good/game-maker:%npm_package_version% && docker push registry.cn-heyuan.aliyuncs.com/llm-good/game-maker:%npm_package_version%",
+    "docker:push:nginx": "cross-env VERSION=%npm_package_version% docker tag llm-good-nginx:%npm_package_version% registry.cn-heyuan.aliyuncs.com/llm-good/nginx:%npm_package_version% && docker push registry.cn-heyuan.aliyuncs.com/llm-good/nginx:%npm_package_version%",
+    "docker:push:db": "cross-env VERSION=%npm_package_version% docker tag llm-good-db:%npm_package_version% registry.cn-heyuan.aliyuncs.com/llm-good/db:%npm_package_version% && docker push registry.cn-heyuan.aliyuncs.com/llm-good/db:%npm_package_version%",
+    "docker:push": "pnpm docker:push:nginx && pnpm docker:push:db && pnpm docker:push:website && pnpm docker:push:frontend && pnpm docker:push:backend && pnpm docker:push:game-hub && pnpm docker:push:game-maker",
+    "deploy:prod": "node scripts/deploy.js",
+    "release:prod": "node scripts/release.js",
+    "version": "lerna version",
+    "publish": "lerna publish from-package",
+    "changed": "lerna changed",
+    "diff": "lerna diff",
+    "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s",
+    "changelog:first": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0",
+    "prepare": "husky install",
+    "commit": "git-cz",
+    "commitlint": "commitlint --edit"
+  },
+  "config": {
+    "commitizen": {
+      "path": "@commitlint/cz-commitlint"
+    }
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.6.1",
+    "@commitlint/config-conventional": "^19.6.0",
+    "@commitlint/cz-commitlint": "^19.2.0",
+    "chalk": "^4.1.2",
+    "commitizen": "^4.3.0",
+    "conventional-changelog-cli": "^5.0.0",
+    "cross-env": "^7.0.3",
+    "dotenv": "^16.4.7",
+    "husky": "^9.0.11",
+    "lerna": "^8.1.9"
   }
-} 
+}

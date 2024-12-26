@@ -1,0 +1,55 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum NameOrigin {
+  CLASSICAL_LITERATURE // 古典文学
+  MODERN_LITERATURE   // 现代文学
+  BUDDHISM           // 佛教文化
+  CONFUCIANISM       // 儒家文化
+  TAOISM            // 道家文化
+  FOLK_CUSTOM       // 民间习俗
+  OTHER             // 其他
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  UNISEX
+}
+
+model User {
+  id        Int        @id @default(autoincrement())
+  email     String     @unique
+  name      String?
+  password  String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  babyNames BabyName[]
+}
+
+model BabyName {
+  id          Int        @id @default(autoincrement())
+  name        String     // 名字
+  gender      Gender     // 性别
+  meaning     String     @db.Text // 名字含义
+  origin      NameOrigin // 名字来源/文化背景
+  popularity  Int        @default(0) // 受欢迎程度
+  lucky       Boolean    @default(false) // 是否为吉利名字
+  strokes     Int?       // 笔画数（可选）
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  createdBy   User       @relation(fields: [userId], references: [id])
+  userId      Int
+}
