@@ -84,10 +84,10 @@ analyze_commits() {
     # 获取提交历史
     if git rev-parse "v$current_version" >/dev/null 2>&1; then
         # 如果当前版本存在对应的标签，获取从该标签到现在的提交
-        commits=$(git log "v$current_version..HEAD" --format="%H%n%s%n%b" --reverse)
+        commits=$(git log "v$current_version..HEAD" --format="%H%n%s%n%b%n" --reverse)
     else
         # 如果当前版本没有对应的标签，获取所有提交
-        commits=$(git log --format="%H%n%s%n%b" --reverse)
+        commits=$(git log --format="%H%n%s%n%b%n" --reverse)
     fi
 
     if [[ -z "$commits" ]]; then
@@ -97,7 +97,7 @@ analyze_commits() {
 
     # 分析提交类型
     local has_version_related_commit=false
-    while IFS= read -r commit_hash && IFS= read -r subject && IFS= read -r body; do
+    while IFS= read -r commit_hash && IFS= read -r subject && IFS= read -r body && IFS= read -r empty; do
         # 截取 commit hash 的前 8 位
         commit_hash=${commit_hash:0:8}
         
