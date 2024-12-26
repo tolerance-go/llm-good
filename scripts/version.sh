@@ -4,6 +4,7 @@ set -e
 
 # 加载工具函数
 source "$(dirname "$0")/version/utils.sh"
+source "$(dirname "$0")/version/analyze_commits.sh"
 
 # 更新 package.json 中的版本号
 update_package_version() {
@@ -39,15 +40,18 @@ main() {
     # 分析提交历史
     print_green "正在分析提交历史..."
     # 使用独立的 analyze_commits.sh 脚本
-    readarray -t output < <(bash "$(dirname "$0")/version/analyze_commits.sh" "$latest_tag")
+    readarray -t output < <(analyze_commits "$latest_tag")
     
     if [[ ${#output[@]} -eq 0 ]]; then
         print_yellow "没有发现版本相关的提交"
         read -rp "是否要手动增加一个版本号？(Y/n) " manual_bump
         if [[ -z "$manual_bump" || ${manual_bump,,} == "y" ]]; then
-            read -r major minor patch < <(bash "$(dirname "$0")/version/analyze_commits.sh" parse_version "$latest_tag")
+            readarray -t version_parts < <(parse_version "$latest_tag")
+            local major="${version_parts[0]}"
+            local minor="${version_parts[1]}"
+            local patch="${version_parts[2]}"
             patch=$((patch + 1))
-            new_version="$major.$minor.$patch"
+            new_version=$(format_version "$major" "$minor" "$patch")
             changelog=("* bump: 手动更新版本号到 $new_version")
         else
             print_yellow "操作已取消"
