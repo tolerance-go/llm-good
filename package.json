@@ -24,9 +24,10 @@
     "docker:push": "pnpm docker:push:nginx && pnpm docker:push:db && pnpm docker:push:website && pnpm docker:push:frontend && pnpm docker:push:backend && pnpm docker:push:game-hub && pnpm docker:push:game-maker",
     "docker:deploy": "pnpm docker:build && pnpm docker:push",
     "deploy:prod": "node scripts/deploy.js",
-    "release:prod": "bash ./scripts/release.sh"
+    "release:prod": "node scripts/release.js"
   },
   "devDependencies": {
+    "chalk": "^4.1.2",
     "cross-env": "^7.0.3",
     "dotenv": "^16.4.7"
   }
