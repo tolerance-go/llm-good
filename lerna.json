@@ -9,7 +9,9 @@
       "changelogPreset": "angular",
       "changelog": true,
       "syncWorkspaceLock": true,
-      "exact": true
+      "exact": true,
+      "private": false,
+      "forcePublish": true
     },
     "publish": {
       "message": "chore(release): publish %s",
