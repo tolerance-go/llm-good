@@ -129,7 +129,7 @@ calculate_new_version() {
         patch=$((patch + 1))
     else
         print_yellow "没有发现版本相关的提交类型 (feat/fix)"
-        read -rp "是否要手动更新版本号？(Y/n) " manual_bump
+        read -rp "是否要手动增加一个版本号？(Y/n) " manual_bump
         if [[ -z "$manual_bump" || ${manual_bump,,} == "y" ]]; then
             patch=$((patch + 1))
             new_version="$major.$minor.$patch"
@@ -138,16 +138,20 @@ calculate_new_version() {
             changelog+=("* bump: 手动更新版本号到 $new_version")
             
             # 更新 package.json
+            print_green "\n更新 package.json..."
             update_package_version "$new_version"
             
             # 更新 changelog 文件
+            print_green "更新 CHANGELOG.md..."
             update_changelog "$new_version" "${changelog[@]}"
             
             # 提交更改
+            print_green "提交更改..."
             git add package.json CHANGELOG.md
             git commit -m "bump: 手动更新版本号到 $new_version"
             
             # 创建 tag
+            print_green "创建标签..."
             git tag -a "v$new_version" -m "Release v$new_version"
             
             print_green "\n✨ 完成！新版本 v$new_version 已创建"
@@ -222,30 +226,30 @@ main() {
     fi
 
     # 确认操作
-    read -rp "是否继续？(y/N) " confirmation
-    if [[ ${confirmation,,} != "y" ]]; then
+    read -rp "是否继续？(Y/n) " confirmation
+    if [[ -z "$confirmation" || ${confirmation,,} == "y" ]]; then
+        # 更新文件
+        print_green "\n更新 package.json..."
+        update_package_version "$new_version"
+
+        print_green "更新 CHANGELOG.md..."
+        update_changelog "$new_version" "${changelog[@]}"
+
+        # 提交更改
+        print_green "提交更改..."
+        git add package.json CHANGELOG.md
+        git commit -m "release: v$new_version"
+
+        # 创建标签
+        print_green "创建标签..."
+        git tag -a "v$new_version" -m "Release v$new_version"
+
+        print_green "\n✨ 完成！新版本 v$new_version 已创建"
+        print_green "请使用 'git push && git push --tags' 推送更改"
+    else
         print_yellow "操作已取消"
         exit 0
     fi
-
-    # 更新文件
-    print_green "\n更新 package.json..."
-    update_package_version "$new_version"
-
-    print_green "更新 CHANGELOG.md..."
-    update_changelog "$new_version" "${changelog[@]}"
-
-    # 提交更改
-    print_green "提交更改..."
-    git add package.json CHANGELOG.md
-    git commit -m "release: v$new_version"
-
-    # 创建标签
-    print_green "创建标签..."
-    git tag -a "v$new_version" -m "Release v$new_version"
-
-    print_green "\n✨ 完成！新版本 v$new_version 已创建"
-    print_green "请使用 'git push && git push --tags' 推送更改"
 }
 
 main "$@" 
