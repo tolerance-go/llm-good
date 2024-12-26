@@ -15,14 +15,24 @@ print_red() {
     echo -e "\033[31m$1\033[0m"
 }
 
-# 获取最近的 tag
+# 获取最近的 tag 或 package.json 中的版本号
 get_latest_tag() {
     local latest_tag
+    local package_version
+
+    # 首先尝试从 package.json 获取版本号
+    package_version=$(jq -r '.version' "$(git rev-parse --show-toplevel)/package.json")
+    if [[ $package_version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        echo "$package_version"
+        return
+    fi
+
+    # 如果 package.json 中没有有效的版本号，尝试获取最近的 tag
     if ! latest_tag=$(git describe --tags --abbrev=0 2>/dev/null); then
         echo "0.0.0"
         return
     fi
-    echo "$latest_tag"
+    echo "$latest_tag" | sed 's/^v//'
 }
 
 # 解析版本号
@@ -77,12 +87,31 @@ calculate_new_version() {
         patch=$((patch + 1))
     else
         print_yellow "警告: 没有发现版本相关的提交类型 (feat/fix)"
-        read -rp $'\n是否要手动创建一个版本更新？(Y/n) ' manual_bump
-        if [[ -z $manual_bump ]] || [[ ${manual_bump,,} == "y" ]]; then
+        print_yellow "当前版本: $current_version"
+        read -rp $'\n是否要创建一个新的版本更新？这将会：\n1. 增加修订号(patch)\n2. 创建一个 bump 类型的提交\n3. 更新 changelog\n\n是否继续？(y/N) ' manual_bump
+        if [[ ${manual_bump,,} == "y" ]]; then
             patch=$((patch + 1))
-            # 创建一个 bump 类型的提交
-            git commit --allow-empty -m "bump: 手动更新版本号到 $major.$minor.$patch"
-            changelog+=("* bump: 手动更新版本号到 $major.$minor.$patch")
+            new_version="$major.$minor.$patch"
+            
+            # 创建 changelog
+            changelog+=("* bump: 手动更新版本号到 $new_version")
+            
+            # 更新 package.json
+            update_package_version "$new_version"
+            
+            # 更新 changelog 文件
+            update_changelog "$new_version" "${changelog[@]}"
+            
+            # 提交更改
+            git add package.json CHANGELOG.md
+            git commit -m "bump: 手动更新版本号到 $new_version"
+            
+            # 创建 tag
+            git tag -a "v$new_version" -m "Release v$new_version"
+            
+            print_green "\n✨ 完成！新版本 v$new_version 已创建"
+            print_green "请使用 'git push && git push --tags' 推送更改"
+            exit 0
         else
             print_yellow "操作已取消"
             exit 0
@@ -150,8 +179,8 @@ main() {
     done
 
     # 确认操作
-    read -rp $'\n是否继续？(Y/n) ' confirmation
-    if [[ -n $confirmation ]] && [[ ${confirmation,,} != "y" ]]; then
+    read -rp $'\n是否继续？(y/N) ' confirmation
+    if [[ ${confirmation,,} != "y" ]]; then
         print_yellow "操作已取消"
         exit 0
     fi
