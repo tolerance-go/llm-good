@@ -31,7 +31,7 @@ async function main() {
   try {
     // 1. 执行版本更新脚本
     printGreen('📦 步骤 1/4: 更新版本号...');
-    execCommand('pnpm version');
+    execCommand('pnpm runversion');
     printGreen('✅ 版本更新完成\n');
 
     // 2. 构建 Docker 镜像
