@@ -1,3 +1,7 @@
+# 0.3.2 (2024-12-26)
+
+* fix(build): 修复 bump version 问题  (de03071b)
+
 # 0.3.1 (2024-12-26)
 
 * fix(build): 修复 version 脚本  (bfd95e9a)
