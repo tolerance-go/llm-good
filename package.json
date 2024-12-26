@@ -23,11 +23,16 @@
     "docker:push:db": "cross-env VERSION=%npm_package_version% docker tag llm-good-db:%npm_package_version% registry.cn-heyuan.aliyuncs.com/llm-good/db:%npm_package_version% && docker push registry.cn-heyuan.aliyuncs.com/llm-good/db:%npm_package_version%",
     "docker:push": "pnpm docker:push:nginx && pnpm docker:push:db && pnpm docker:push:website && pnpm docker:push:frontend && pnpm docker:push:backend && pnpm docker:push:game-hub && pnpm docker:push:game-maker",
     "deploy:prod": "node scripts/deploy.js",
-    "release:prod": "node scripts/release.js"
+    "release:prod": "node scripts/release.js",
+    "version": "lerna version",
+    "publish": "lerna publish from-package",
+    "changed": "lerna changed",
+    "diff": "lerna diff"
   },
   "devDependencies": {
     "chalk": "^4.1.2",
     "cross-env": "^7.0.3",
-    "dotenv": "^16.4.7"
+    "dotenv": "^16.4.7",
+    "lerna": "^8.1.9"
   }
 }
