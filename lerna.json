@@ -22,7 +22,7 @@
     "apps/*"
   ],
   "ignoreChanges": [
-    "**/*.md",
+    "**/CHANGELOG.md",
     "**/*.test.ts",
     "**/*.test.tsx",
     "**/*.spec.ts",
