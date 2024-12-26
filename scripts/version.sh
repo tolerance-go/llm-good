@@ -15,13 +15,37 @@ print_red() {
     echo -e "\033[31m$1\033[0m"
 }
 
+# 从 package.json 读取版本号
+get_package_version() {
+    local package_json=$1
+    if [[ -f $package_json ]]; then
+        grep -o '"version": *"[^"]*"' "$package_json" | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+'
+    fi
+}
+
+# 更新 package.json 中的版本号
+update_package_version() {
+    local version=$1
+    local package_json
+    package_json=$(git rev-parse --show-toplevel)/package.json
+
+    # 使用 sed 更新版本号
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        # macOS
+        sed -i '' "s/\"version\": *\"[^\"]*\"/\"version\": \"$version\"/" "$package_json"
+    else
+        # Linux 和 Windows
+        sed -i "s/\"version\": *\"[^\"]*\"/\"version\": \"$version\"/" "$package_json"
+    fi
+}
+
 # 获取最近的 tag 或 package.json 中的版本号
 get_latest_tag() {
     local latest_tag
     local package_version
 
     # 首先尝试从 package.json 获取版本号
-    package_version=$(jq -r '.version' "$(git rev-parse --show-toplevel)/package.json")
+    package_version=$(get_package_version "$(git rev-parse --show-toplevel)/package.json")
     if [[ $package_version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
         echo "$package_version"
         return
@@ -46,7 +70,7 @@ parse_version() {
     fi
 }
 
-# 计算��版本号
+# 计算新版本号
 calculate_new_version() {
     local current_version=$1
     local has_breaking_change=false
@@ -56,7 +80,7 @@ calculate_new_version() {
 
     # 如果当前版本是"无"，则从 package.json 中获取版本号
     if [[ $current_version == "无" ]]; then
-        current_version=$(jq -r '.version' "$(git rev-parse --show-toplevel)/package.json")
+        current_version=$(get_package_version "$(git rev-parse --show-toplevel)/package.json")
         if [[ ! $current_version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             current_version="0.0.0"
         fi
@@ -131,19 +155,6 @@ calculate_new_version() {
     fi
 
     echo "$major.$minor.$patch" "${changelog[@]}"
-}
-
-# 更新 package.json 中的版本号
-update_package_version() {
-    local version=$1
-    local package_json
-    package_json=$(git rev-parse --show-toplevel)/package.json
-
-    # 使用临时文件来更新 package.json
-    local temp_file
-    temp_file=$(mktemp)
-    jq ".version = \"$version\"" "$package_json" > "$temp_file"
-    mv "$temp_file" "$package_json"
 }
 
 # 更新 changelog
