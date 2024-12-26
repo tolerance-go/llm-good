@@ -27,8 +27,8 @@ const command = process.argv[2];
 
 switch (command) {
   case 'build':
-    // 先构建所有服务
-    runCommand(`docker compose build --build-arg VERSION=${version}`);
+    // 先构建所有服务，使用 .env.prod 文件
+    runCommand(`docker compose --env-file .env.prod build --build-arg VERSION=${version}`);
     
     // 构建完成后，为所有服务打上对应的标签
     services.forEach(service => {

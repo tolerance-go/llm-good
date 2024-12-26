@@ -56,6 +56,9 @@ services:
     environment:
       - NODE_ENV=production
       - DATABASE_URL=${DATABASE_URL}
+      - VOLCENGINE_API_KEY=${VOLCENGINE_API_KEY}
+      - VOLCENGINE_API_SECRET=${VOLCENGINE_API_SECRET}
+      - VOLCENGINE_HOST=${VOLCENGINE_HOST}
     depends_on:
       db:
         condition: service_healthy
