@@ -69,6 +69,8 @@ services:
       args:
         - VERSION=${VERSION}
     image: llm-good-db:${VERSION:-latest}
+    ports:
+      - "${MYSQL_PORT}:3306"
     expose:
       - 3306
     environment:
