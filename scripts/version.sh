@@ -44,7 +44,7 @@ get_latest_tag() {
     local latest_tag
     local package_version
 
-    # 首先尝试从 git tag ���取最近的标签
+    # 首先尝试从 git tag 取最近的标签
     if latest_tag=$(git describe --tags --abbrev=0 2>/dev/null); then
         echo "$latest_tag" | sed 's/^v//'
         return
@@ -230,8 +230,11 @@ main() {
         print_green "创建标签..."
         git tag -a "v$new_version" -m "Release v$new_version"
 
-        print_green "\n✨ 完成！新版本 v$new_version 已创建"
-        print_green "请使用 'git push && git push --tags' 推送更改"
+        # 推送更改
+        print_green "\n推送更改到远程仓库..."
+        git push && git push --tags
+
+        print_green "\n✨ 完成！新版本 v$new_version 已创建并推送"
     else
         print_yellow "操作已取消"
         exit 0
