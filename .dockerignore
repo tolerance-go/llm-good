@@ -17,8 +17,6 @@
 **/.pnpm-store
 **/.vscode
 **/.idea
-**/README.md
 **/LICENSE
-**/*.md
 **/Dockerfile*
 **/.dockerignore 
