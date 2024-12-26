@@ -12,7 +12,10 @@ const services = ['website', 'frontend', 'backend', 'game-hub', 'game-maker', 'n
 // 执行命令并打印输出
 function runCommand(command) {
   try {
-    execSync(command, { stdio: 'inherit' });
+    execSync(command, { 
+      stdio: 'inherit',
+      env: { ...process.env, VERSION: version }
+    });
   } catch (error) {
     console.error(`Error executing command: ${command}`);
     process.exit(1);
