@@ -86,7 +86,7 @@ calculate_new_version() {
         fi
     fi
 
-    # 读取从最近 tag 到现在的所有提交
+    # 读取从最近 tag 到现在的��有提交
     local git_log_range="HEAD"
     if [[ $current_version != "0.0.0" ]]; then
         git_log_range="v$current_version..HEAD"
@@ -106,7 +106,7 @@ calculate_new_version() {
             has_fix=true
             changelog+=("* $subject ($commit_hash)")
         fi
-    done < <(git log "$git_log_range" --format="%H%n%s%n%b" --reverse)
+    done < <(git log "$git_log_range" --format="%H%n%s%n%b" --reverse 2>/dev/null || echo)
 
     # 解析当前版本号
     read -r major minor patch < <(parse_version "$current_version")
@@ -209,10 +209,12 @@ main() {
 
     # 显示变更信息
     print_green "\n将要创建新版本: $new_version"
-    print_green "Changelog:"
-    for line in "${changelog[@]}"; do
-        print_yellow "  $line"
-    done
+    if [[ ${#changelog[@]} -gt 0 ]]; then
+        print_green "Changelog:"
+        for line in "${changelog[@]}"; do
+            print_yellow "  $line"
+        done
+    fi
 
     # 确认操作
     read -rp "是否继续？(y/N) " confirmation
