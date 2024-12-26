@@ -87,6 +87,19 @@ services:
       - 80
     environment:
       - NODE_ENV=${NODE_ENV:-production}
+    depends_on:
+      - backend
+    restart: always
+
+  game-maker:
+    image: registry.cn-heyuan.aliyuncs.com/llm-good/game-maker:${VERSION}
+    expose:
+      - 80
+    environment:
+      - VITE_API_URL=/api
+      - NODE_ENV=${NODE_ENV:-production}
+    depends_on:
+      - backend
     restart: always
 
 volumes:
