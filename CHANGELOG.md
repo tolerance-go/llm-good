@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.1.4](https://github.com/tolerance-go/llm-good/compare/v0.1.3...v0.1.4) (2024-12-26)
+
+
+### Features
+
+* **env:** add Volcengine configuration to .env.example and docker-compose, update build command to use .env.prod, remove obsolete push-env script ([5a71ae3](https://github.com/tolerance-go/llm-good/commit/5a71ae398b1c7925c434a0df180137f7c929c1fe))
+
+
+
+
+
 ## [0.1.3](https://github.com/tolerance-go/llm-good/compare/v0.1.2...v0.1.3) (2024-12-26)
 
 
