@@ -14,8 +14,8 @@ services:
       args:
         - VERSION=${VERSION}
         - NODE_ENV=${NODE_ENV:-production}
-        - VITE_SITE_TITLE=${VITE_SITE_TITLE}
-        - VITE_SITE_DESCRIPTION=${VITE_SITE_DESCRIPTION}
+        # - VITE_SITE_TITLE=${VITE_SITE_TITLE}
+        # - VITE_SITE_DESCRIPTION=${VITE_SITE_DESCRIPTION}
         - VITE_API_URL=${VITE_API_URL}
     image: llm-good-website:${VERSION}
 
@@ -26,9 +26,9 @@ services:
       args:
         - VERSION=${VERSION}
         - VITE_API_URL=${VITE_API_URL}
-        - VITE_APP_TITLE=${VITE_APP_TITLE}
-        - VITE_SOCKET_URL=${VITE_SOCKET_URL}
-        - VITE_ENABLE_VCONSOLE=${VITE_ENABLE_VCONSOLE:-false}
+        # - VITE_APP_TITLE=${VITE_APP_TITLE}
+        # - VITE_SOCKET_URL=${VITE_SOCKET_URL}
+        # - VITE_ENABLE_VCONSOLE=${VITE_ENABLE_VCONSOLE:-false}
         - VITE_PUBLIC_PATH=${VITE_PUBLIC_PATH:-/}
     image: llm-good-frontend:${VERSION}
 
@@ -40,13 +40,13 @@ services:
         - VERSION=${VERSION}
         - NODE_ENV=production
         - DATABASE_URL=${DATABASE_URL}
-        - JWT_SECRET=${JWT_SECRET}
-        - REDIS_URL=${REDIS_URL}
-        - VOLCENGINE_API_KEY=${VOLCENGINE_API_KEY}
-        - VOLCENGINE_API_SECRET=${VOLCENGINE_API_SECRET}
-        - VOLCENGINE_HOST=${VOLCENGINE_HOST}
-        - SOCKET_PATH=${SOCKET_PATH}
-        - CORS_ORIGIN=${CORS_ORIGIN}
+        # - JWT_SECRET=${JWT_SECRET}
+        # - REDIS_URL=${REDIS_URL}
+        # - VOLCENGINE_API_KEY=${VOLCENGINE_API_KEY}
+        # - VOLCENGINE_API_SECRET=${VOLCENGINE_API_SECRET}
+        # - VOLCENGINE_HOST=${VOLCENGINE_HOST}
+        # - SOCKET_PATH=${SOCKET_PATH}
+        # - CORS_ORIGIN=${CORS_ORIGIN}
     image: llm-good-backend:${VERSION}
 
   db:
@@ -69,8 +69,8 @@ services:
         - VERSION=${VERSION}
         - NODE_ENV=${NODE_ENV:-production}
         - VITE_API_URL=${VITE_API_URL}
-        - VITE_APP_TITLE=${VITE_APP_TITLE}
-        - VITE_SOCKET_URL=${VITE_SOCKET_URL}
+        # - VITE_APP_TITLE=${VITE_APP_TITLE}
+        # - VITE_SOCKET_URL=${VITE_SOCKET_URL}
         - VITE_PUBLIC_PATH=${VITE_PUBLIC_PATH:-/game-hub/}
     image: llm-good-game-hub:${VERSION}
 
@@ -82,7 +82,7 @@ services:
         - VERSION=${VERSION}
         - NODE_ENV=${NODE_ENV:-production}
         - VITE_API_URL=${VITE_API_URL}
-        - VITE_APP_TITLE=${VITE_APP_TITLE}
-        - VITE_SOCKET_URL=${VITE_SOCKET_URL}
+        # - VITE_APP_TITLE=${VITE_APP_TITLE}
+        # - VITE_SOCKET_URL=${VITE_SOCKET_URL}
         - VITE_PUBLIC_PATH=${VITE_PUBLIC_PATH:-/game-maker/}
     image: llm-good-game-maker:${VERSION} 
