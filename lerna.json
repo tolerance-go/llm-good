@@ -17,7 +17,8 @@
     }
   },
   "packages": [
-    "apps/*"
+    "apps/*",
+    "packages/*"
   ],
   "ignoreChanges": [
     "**/CHANGELOG.md",
