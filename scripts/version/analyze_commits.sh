@@ -38,6 +38,7 @@ analyze_commits() {
     local has_breaking_change=false
     local has_feat=false
     local has_fix=false
+    local has_optimize=false
     local changelog=()
 
     echo "开始分析提交历史..." >&2
@@ -84,6 +85,11 @@ analyze_commits() {
                 has_fix=true
                 has_version_related_commit=true
                 changelog+=("* $commit_msg ($commit_hash)")
+            elif [[ $commit_msg =~ ^optimize(\(.+\))?:.+ ]]; then
+                echo "发现优化" >&2
+                has_optimize=true
+                has_version_related_commit=true
+                changelog+=("* $commit_msg ($commit_hash)")
             fi
             
             # 重置变量，准备处理下一个提交
@@ -117,7 +123,7 @@ analyze_commits() {
         minor=0
         patch=0
         echo "版本更新: 主版本号递增" >&2
-    elif [[ $has_feat == true ]]; then
+    elif [[ $has_feat == true ]] || [[ $has_optimize == true ]]; then
         minor=$((minor + 1))
         patch=0
         echo "版本更新: 次版本号递增" >&2
