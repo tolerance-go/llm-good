@@ -9,7 +9,7 @@ parse_version() {
             printf "%d %d %d\n" "${BASH_REMATCH[1]}" "${BASH_REMATCH[2]}" "${BASH_REMATCH[3]}"
         else
             # 如果是被其他脚本调用，输出数组格式
-            printf "%s\n" "${BASH_REMATCH[1]}" "${BASH_REMATCH[2]}" "${BASH_REMATCH[3]}"
+            printf "%d\n%d\n%d\n" "${BASH_REMATCH[1]}" "${BASH_REMATCH[2]}" "${BASH_REMATCH[3]}"
         fi
     else
         echo "无效的版本号格式: $version" >&2
@@ -106,7 +106,7 @@ analyze_commits() {
         
         # 收集提交信息
         if [[ -n "$commit_msg" ]]; then
-            commit_msg+=$'\n'
+            commit_msg+=" "
         fi
         commit_msg+="$line"
     done < <(echo "$commits")
