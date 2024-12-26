@@ -44,19 +44,21 @@ get_latest_tag() {
     local latest_tag
     local package_version
 
-    # 首先尝试从 package.json 获取版本号
+    # 首先尝试从 git tag 获取最近的标签
+    if latest_tag=$(git describe --tags --abbrev=0 2>/dev/null); then
+        echo "$latest_tag" | sed 's/^v//'
+        return
+    fi
+
+    # 如果没有标签，从 package.json 获取版本号
     package_version=$(get_package_version "$(git rev-parse --show-toplevel)/package.json")
     if [[ $package_version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
         echo "$package_version"
         return
     fi
 
-    # 如果 package.json 中没有有效的版本号，尝试获取最近的 tag
-    if ! latest_tag=$(git describe --tags --abbrev=0 2>/dev/null); then
-        echo "无"
-        return
-    fi
-    echo "$latest_tag" | sed 's/^v//'
+    # 如果都没有，返回初始版本号
+    echo "0.0.0"
 }
 
 # 解析版本号
@@ -70,90 +72,55 @@ parse_version() {
     fi
 }
 
-# 计算新版本号
-calculate_new_version() {
+# 获取并分析提交历史
+analyze_commits() {
     local current_version=$1
     local has_breaking_change=false
     local has_feat=false
     local has_fix=false
     local changelog=()
-
-    # 如果当前版本是"无"，则从 package.json 中获取版本号
-    if [[ $current_version == "无" ]]; then
-        current_version=$(get_package_version "$(git rev-parse --show-toplevel)/package.json")
-        if [[ ! $current_version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            current_version="0.0.0"
-        fi
-    fi
-
-    # 读取从最近 tag 到现在的��有提交
-    local git_log_range="HEAD"
-    if [[ $current_version != "0.0.0" ]]; then
-        git_log_range="v$current_version..HEAD"
-    fi
-
     local commits
-    commits=$(git log "$git_log_range" --format="%H%n%s%n%b" --reverse 2>/dev/null)
-    
+
+    # 获取提交历史
+    if [[ $current_version == "0.0.0" ]]; then
+        # 如果是初始版本，获取所有提交
+        commits=$(git log --format="%H%n%s%n%b" --reverse 2>/dev/null)
+    else
+        # 获取从最近标签到现在的提交
+        commits=$(git log "v$current_version..HEAD" --format="%H%n%s%n%b" --reverse 2>/dev/null)
+    fi
+
     if [[ -z "$commits" ]]; then
-        print_yellow "没有发现任何新的提交"
-        read -rp "是否要手动增加一个版本号？(Y/n) " manual_bump
-        if [[ -z "$manual_bump" || ${manual_bump,,} == "y" ]]; then
-            patch=$((patch + 1))
-            new_version="$major.$minor.$patch"
-            
-            # 创建 changelog
-            changelog+=("* bump: 手动更新版本号到 $new_version")
-            
-            # 更新 package.json
-            print_green "\n更新 package.json..."
-            update_package_version "$new_version"
-            
-            # 更新 changelog 文件
-            print_green "更新 CHANGELOG.md..."
-            update_changelog "$new_version" "${changelog[@]}"
-            
-            # 提交更改
-            print_green "提交更改..."
-            git add package.json CHANGELOG.md
-            git commit -m "bump: 手动更新版本号到 $new_version"
-            
-            # 创建 tag
-            print_green "创建标签..."
-            git tag -a "v$new_version" -m "Release v$new_version"
-            
-            print_green "\n✨ 完成！新版本 v$new_version 已创建"
-            print_green "请使用 'git push && git push --tags' 推送更改"
-            exit 0
-        else
-            print_yellow "操作已取消"
-            exit 0
-        fi
+        echo "no_commits"
         return
     fi
-    
+
+    # 分析提交类型
+    local has_version_related_commit=false
     while IFS= read -r commit_hash && IFS= read -r subject && IFS= read -r body; do
-        # 检查是否有破坏性变更
         if [[ $subject == *"BREAKING CHANGE:"* ]] || [[ $body == *"BREAKING CHANGE:"* ]] || [[ $subject == *"!:"* ]]; then
             has_breaking_change=true
-        fi
-
-        # 检查提交类型
-        if [[ $subject =~ ^feat(\(.+\))?:.+ ]]; then
+            has_version_related_commit=true
+            changelog+=("* $subject ($commit_hash)")
+        elif [[ $subject =~ ^feat(\(.+\))?:.+ ]]; then
             has_feat=true
+            has_version_related_commit=true
             changelog+=("* $subject ($commit_hash)")
         elif [[ $subject =~ ^fix(\(.+\))?:.+ ]]; then
             has_fix=true
+            has_version_related_commit=true
             changelog+=("* $subject ($commit_hash)")
         fi
     done < <(echo "$commits")
 
-    # 解析当前版本号
-    read -r major minor patch < <(parse_version "$current_version")
+    if [[ $has_version_related_commit == false ]]; then
+        echo "no_version_commits"
+        return
+    fi
 
-    # 根据提交类型计算新版本号
+    # 计算新版本号
+    read -r major minor patch < <(parse_version "$current_version")
     if [[ $has_breaking_change == true ]]; then
-        print_yellow "检测到 BREAKING CHANGE，将增加主版本号(major)"
         major=$((major + 1))
         minor=0
         patch=0
@@ -162,40 +129,6 @@ calculate_new_version() {
         patch=0
     elif [[ $has_fix == true ]]; then
         patch=$((patch + 1))
-    else
-        print_yellow "没有发现版本关的提交类型 (feat/fix)"
-        read -rp "是否要手动增加一个版本号？(Y/n) " manual_bump
-        if [[ -z "$manual_bump" || ${manual_bump,,} == "y" ]]; then
-            patch=$((patch + 1))
-            new_version="$major.$minor.$patch"
-            
-            # 创建 changelog
-            changelog+=("* bump: 手动更新版本号到 $new_version")
-            
-            # 更新 package.json
-            print_green "\n更新 package.json..."
-            update_package_version "$new_version"
-            
-            # 更新 changelog 文件
-            print_green "更新 CHANGELOG.md..."
-            update_changelog "$new_version" "${changelog[@]}"
-            
-            # 提交更改
-            print_green "提交更改..."
-            git add package.json CHANGELOG.md
-            git commit -m "bump: 手动更新版本号到 $new_version"
-            
-            # 创建 tag
-            print_green "创建标签..."
-            git tag -a "v$new_version" -m "Release v$new_version"
-            
-            print_green "\n✨ 完成！新版本 v$new_version 已创建"
-            print_green "请使用 'git push && git push --tags' 推送更改"
-            exit 0
-        else
-            print_yellow "操作已取消"
-            exit 0
-        fi
     fi
 
     echo "$major.$minor.$patch" "${changelog[@]}"
@@ -213,7 +146,6 @@ update_changelog() {
     local temp_file
     temp_file=$(mktemp)
 
-    # 生成新的 changelog 内容
     {
         echo "# $version ($date)"
         echo
@@ -242,19 +174,33 @@ main() {
     # 检查工作区状态
     check_working_tree
 
-    # 获取最近的 tag
+    # 获取最近的标签
     print_green "正在获取最近的标签..."
     latest_tag=$(get_latest_tag)
     print_yellow "最近的标签: $latest_tag"
 
-    # 计算新版本号
-    print_green "正在分析 commit 历史..."
-    read -r new_version changelog < <(calculate_new_version "$latest_tag")
+    # 分析提交历史
+    print_green "正在分析提交历史..."
+    read -r result changelog < <(analyze_commits "$latest_tag")
 
-    # 如果 calculate_new_version 已经处理完（手动增加版本号的情况），这里就直接退出
-    if [[ $? -ne 0 ]]; then
-        exit $?
-    fi
+    case $result in
+        "no_commits"|"no_version_commits")
+            print_yellow "没有发现版本相关的提交"
+            read -rp "是否要手动增加一个版本号？(Y/n) " manual_bump
+            if [[ -z "$manual_bump" || ${manual_bump,,} == "y" ]]; then
+                read -r major minor patch < <(parse_version "$latest_tag")
+                patch=$((patch + 1))
+                new_version="$major.$minor.$patch"
+                changelog=("* bump: 手动更新版本号到 $new_version")
+            else
+                print_yellow "操作已取消"
+                exit 0
+            fi
+            ;;
+        *)
+            new_version=$result
+            ;;
+    esac
 
     # 显示变更信息
     print_green "\n将要创建新版本: $new_version"
