@@ -15,7 +15,9 @@
 # 0.3.0 (2024-12-26)
 
 * feat: 更新网站名称为 UNoCodeX 并重新设计网站内容 (3c3beb5c)
+
 * feat: add game-maker service configuration and nginx routes (c765b6e1)
+
 * feat(game-maker): 优化页面 (2b790c20)
 
 # 0.2.15 (2024-12-26)
