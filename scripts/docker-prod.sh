@@ -97,23 +97,21 @@ case "$1" in
         
         # 申请证书并配置自动续期
         echo "开始申请 SSL 证书..."
-        docker compose -f docker-compose.prod.yml run --rm certbot \
-            certbot certonly \
+        docker run -it --rm \
+            -v "$(pwd)/certbot/conf:/etc/letsencrypt" \
+            -v "$(pwd)/certbot/www:/var/www/certbot" \
+            certbot/certbot certonly \
             --webroot \
-            -w /var/www/certbot \
+            --webroot-path=/var/www/certbot \
             -d www.unocodex.com \
+            -d unocodex.com \
             --email yarnb@qq.com \
-            --agree-tos \
-            --no-eff-email \
-            --verbose \
-            --debug
+            --agree-tos
         
         CERT_EXIT_CODE=$?
         
         if [ $CERT_EXIT_CODE -eq 0 ]; then
             echo "✅ SSL 证书申请成功！"
-            echo "证书将自动每 12 小时尝试续期一次"
-            echo "切换到生产配置并启动所有服务..."
             docker compose -f docker-compose.prod.yml down
             docker compose -f docker-compose.prod.yml up -d
             echo "完成！您的网站现在应该可以通过 HTTPS 访问了。"
@@ -141,7 +139,7 @@ case "$1" in
     *)
         echo "错误: 无效的命令"
         echo "使用方法: ./docker-prod.sh init-ssl|start|stop|restart"
-        echo "init-ssl: 初始化 SSL 证书（仅首次部署需要）"
+        echo "init-ssl: 初始化 SSL 证书（��首次部署需要）"
         echo "start:    启动所有服务"
         echo "stop:     停止所有服务"
         echo "restart:  重启所有服务"
