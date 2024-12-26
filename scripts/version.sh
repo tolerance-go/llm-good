@@ -29,7 +29,7 @@ get_latest_tag() {
 
     # 如果 package.json 中没有有效的版本号，尝试获取最近的 tag
     if ! latest_tag=$(git describe --tags --abbrev=0 2>/dev/null); then
-        echo "0.0.0"
+        echo "无"
         return
     fi
     echo "$latest_tag" | sed 's/^v//'
@@ -54,7 +54,20 @@ calculate_new_version() {
     local has_fix=false
     local changelog=()
 
+    # 如果当前版本是"无"，则从 package.json 中获取版本号
+    if [[ $current_version == "无" ]]; then
+        current_version=$(jq -r '.version' "$(git rev-parse --show-toplevel)/package.json")
+        if [[ ! $current_version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            current_version="0.0.0"
+        fi
+    fi
+
     # 读取从最近 tag 到现在的所有提交
+    local git_log_range="HEAD"
+    if [[ $current_version != "0.0.0" ]]; then
+        git_log_range="v$current_version..HEAD"
+    fi
+
     while IFS= read -r commit_hash && IFS= read -r subject && IFS= read -r body; do
         # 检查是否有破坏性变更
         if [[ $subject == *"BREAKING CHANGE:"* ]] || [[ $body == *"BREAKING CHANGE:"* ]] || [[ $subject == *"!:"* ]]; then
@@ -69,7 +82,7 @@ calculate_new_version() {
             has_fix=true
             changelog+=("* $subject ($commit_hash)")
         fi
-    done < <(git log "$(get_latest_tag)..HEAD" --format="%H%n%s%n%b" --reverse)
+    done < <(git log "$git_log_range" --format="%H%n%s%n%b" --reverse)
 
     # 解析当前版本号
     read -r major minor patch < <(parse_version "$current_version")
@@ -86,9 +99,8 @@ calculate_new_version() {
     elif [[ $has_fix == true ]]; then
         patch=$((patch + 1))
     else
-        print_yellow "警告: 没有发现版本相关的提交类型 (feat/fix)"
-        print_yellow "当前版本: $current_version"
-        read -rp $'\n是否要创建一个新的版本更新？这将会：\n1. 增加修订号(patch)\n2. 创建一个 bump 类型的提交\n3. 更新 changelog\n\n是否继续？(y/N) ' manual_bump
+        print_yellow "没有发现版本相关的提交类型 (feat/fix)"
+        read -rp "是否要手动更新版本号？(y/N) " manual_bump
         if [[ ${manual_bump,,} == "y" ]]; then
             patch=$((patch + 1))
             new_version="$major.$minor.$patch"
@@ -127,7 +139,7 @@ update_package_version() {
     local package_json
     package_json=$(git rev-parse --show-toplevel)/package.json
 
-    # 使用临时文件来更新 package.json
+    # 使用临时���件来更新 package.json
     local temp_file
     temp_file=$(mktemp)
     jq ".version = \"$version\"" "$package_json" > "$temp_file"
@@ -173,13 +185,13 @@ main() {
 
     # 显示变更信息
     print_green "\n将要创建新版本: $new_version"
-    print_green "\nChangelog:"
+    print_green "Changelog:"
     for line in "${changelog[@]}"; do
         print_yellow "  $line"
     done
 
     # 确认操作
-    read -rp $'\n是否继续？(y/N) ' confirmation
+    read -rp "是否继续？(y/N) " confirmation
     if [[ ${confirmation,,} != "y" ]]; then
         print_yellow "操作已取消"
         exit 0
