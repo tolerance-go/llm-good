@@ -149,7 +149,9 @@ update_changelog() {
     {
         echo "# $version ($date)"
         echo
-        printf "%s\n" "${changelog[@]}"
+        for change in "${changelog[@]}"; do
+            echo "$change"
+        done
         echo
         if [[ -f $changelog_file ]]; then
             cat "$changelog_file"
