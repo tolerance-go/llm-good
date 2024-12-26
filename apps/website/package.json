@@ -1,6 +1,6 @@
 {
   "name": "@llm-good/website",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Official Website",
   "type": "module",
   "scripts": {
