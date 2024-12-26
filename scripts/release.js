@@ -41,7 +41,7 @@ async function main() {
 
     // 3. 推送 Docker 镜像
     printGreen('⬆️  步骤 3/4: 推送 Docker 镜像...');
-    execCommand('pnpm run docker:deploy');
+    execCommand('pnpm run docker:push');
     printGreen('✅ Docker 镜像推送完成\n');
 
     // 4. 部署到生产环境
