@@ -86,7 +86,7 @@ calculate_new_version() {
         fi
     fi
 
-    # 读取从最近 tag 到现在的��有提交
+    # 读取从最近 tag 到现在的所有提交
     local git_log_range="HEAD"
     if [[ $current_version != "0.0.0" ]]; then
         git_log_range="v$current_version..HEAD"
@@ -94,6 +94,10 @@ calculate_new_version() {
 
     local commits
     commits=$(git log "$git_log_range" --format="%H%n%s%n%b" --reverse 2>/dev/null)
+    
+    if [[ -z "$commits" ]]; then
+        print_yellow "没有发现任何新的提交"
+    fi
     
     if [[ -n "$commits" ]]; then
         while IFS= read -r commit_hash && IFS= read -r subject && IFS= read -r body; do
@@ -128,7 +132,7 @@ calculate_new_version() {
     elif [[ $has_fix == true ]]; then
         patch=$((patch + 1))
     else
-        print_yellow "没有发现版本相关的提交类型 (feat/fix)"
+        print_yellow "没有发现版本���关的提交类型 (feat/fix)"
         read -rp "是否要手动增加一个版本号？(Y/n) " manual_bump
         if [[ -z "$manual_bump" || ${manual_bump,,} == "y" ]]; then
             patch=$((patch + 1))
@@ -210,7 +214,7 @@ main() {
     # 获取最近的 tag
     print_green "正在获取最近的标签..."
     latest_tag=$(get_latest_tag)
-    print_yellow "最近的标���: $latest_tag"
+    print_yellow "最近的标签: $latest_tag"
 
     # 计算新版本号
     print_green "正在分析 commit 历史..."
