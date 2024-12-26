@@ -44,7 +44,7 @@ get_latest_tag() {
     local latest_tag
     local package_version
 
-    # 首先尝试从 git tag 获取最近的标签
+    # 首先尝试从 git tag ���取最近的标签
     if latest_tag=$(git describe --tags --abbrev=0 2>/dev/null); then
         echo "$latest_tag" | sed 's/^v//'
         return
@@ -82,12 +82,12 @@ analyze_commits() {
     local commits
 
     # 获取提交历史
-    if [[ $current_version == "0.0.0" ]]; then
-        # 如果是初始版本，获取所有提交
-        commits=$(git log --format="%H%n%s%n%b" --reverse 2>/dev/null)
-    else
-        # 获取从最近标签到现在的提交
+    if git tag -l "v$current_version" | grep -q .; then
+        # 如果当前版本存在对应的标签，获取从该标签到现在的提交
         commits=$(git log "v$current_version..HEAD" --format="%H%n%s%n%b" --reverse 2>/dev/null)
+    else
+        # 如果当前版本没有对应的标签，获取所有提交
+        commits=$(git log --format="%H%n%s%n%b" --reverse 2>/dev/null)
     fi
 
     if [[ -z "$commits" ]]; then
