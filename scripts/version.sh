@@ -91,13 +91,59 @@ main() {
     # 解析提交输出
     local new_version
     local -a changelog
-    if [[ ${#output[@]} -eq 0 ]]; then
+    if [[ ${#output[@]} -eq 0 ]] || [[ "${output[0]}" == "no_version_commits" ]]; then
         print_yellow "没有发现版本相关的提交"
+        # 先计算新版本号和 changelog
+        readarray -t bump_output < <(bump_version "$latest_tag")
+        new_version="${bump_output[0]}"
+        changelog=("${bump_output[@]:1}")
+
+        # 显示变更信息
+        print_green "\n将要创建新版本: $new_version"
+        if [[ ${#changelog[@]} -gt 0 ]]; then
+            print_green "Changelog:"
+            for line in "${changelog[@]}"; do
+                print_yellow "  $line"
+            done
+        fi
+
+        # 预览 changelog
+        print_green "\n预览 changelog 内容:"
+        bash "$(dirname "$0")/version/update_changelog.sh" --preview "$new_version" "${changelog[@]}" | while IFS= read -r line; do
+            print_yellow "  $line"
+        done
+
+        # 询问是否继续
         read -rp "是否要手动增加一个版本号？(Y/n) " manual_bump
         if [[ -z "$manual_bump" || ${manual_bump,,} == "y" ]]; then
-            readarray -t bump_output < <(bump_version "$latest_tag")
-            new_version="${bump_output[0]}"
-            changelog=("${bump_output[@]:1}")
+            # 确认操作
+            read -rp "是否继续？(Y/n) " confirmation
+            if [[ -z "$confirmation" || ${confirmation,,} == "y" ]]; then
+                # 更新文件
+                print_green "\n更新 package.json..."
+                update_package_version "$new_version"
+
+                print_green "更新 CHANGELOG.md..."
+                bash "$(dirname "$0")/version/update_changelog.sh" "$new_version" "${changelog[@]}"
+
+                # 提交更改
+                print_green "提交更改..."
+                git add package.json CHANGELOG.md
+                git commit -m "release: v$new_version"
+
+                # 创建标签
+                print_green "创建标签..."
+                git tag -a "v$new_version" -m "Release v$new_version"
+
+                # 推送更改
+                print_green "\n推送更改到远程仓库..."
+                git push && git push --tags
+
+                print_green "\n✨ 完成！新版本 v$new_version 已创建并推送"
+            else
+                print_yellow "操作已取消"
+                exit 0
+            fi
         else
             print_yellow "操作已取消"
             exit 0
@@ -106,50 +152,50 @@ main() {
         readarray -t parsed_output < <(parse_commits_output "$latest_tag" "${output[@]}")
         new_version="${parsed_output[0]}"
         changelog=("${parsed_output[@]:1}")
-    fi
 
-    # 显示变更信息
-    print_green "\n将要创建新版本: $new_version"
-    if [[ ${#changelog[@]} -gt 0 ]]; then
-        print_green "Changelog:"
-        for line in "${changelog[@]}"; do
+        # 显示变更信息
+        print_green "\n将要创建新版本: $new_version"
+        if [[ ${#changelog[@]} -gt 0 ]]; then
+            print_green "Changelog:"
+            for line in "${changelog[@]}"; do
+                print_yellow "  $line"
+            done
+        fi
+
+        # 预览 changelog
+        print_green "\n预览 changelog 内容:"
+        bash "$(dirname "$0")/version/update_changelog.sh" --preview "$new_version" "${changelog[@]}" | while IFS= read -r line; do
             print_yellow "  $line"
         done
-    fi
 
-    # 预览 changelog
-    print_green "\n预览 changelog 内容:"
-    bash "$(dirname "$0")/version/update_changelog.sh" --preview "$new_version" "${changelog[@]}" | while IFS= read -r line; do
-        print_yellow "  $line"
-    done
+        # 确认操作
+        read -rp "是否继续？(Y/n) " confirmation
+        if [[ -z "$confirmation" || ${confirmation,,} == "y" ]]; then
+            # 更新文件
+            print_green "\n更新 package.json..."
+            update_package_version "$new_version"
 
-    # 确认操作
-    read -rp "是否继续？(Y/n) " confirmation
-    if [[ -z "$confirmation" || ${confirmation,,} == "y" ]]; then
-        # 更新文件
-        print_green "\n更新 package.json..."
-        update_package_version "$new_version"
+            print_green "更新 CHANGELOG.md..."
+            bash "$(dirname "$0")/version/update_changelog.sh" "$new_version" "${changelog[@]}"
 
-        print_green "更新 CHANGELOG.md..."
-        bash "$(dirname "$0")/version/update_changelog.sh" "$new_version" "${changelog[@]}"
+            # 提交更改
+            print_green "提交更改..."
+            git add package.json CHANGELOG.md
+            git commit -m "release: v$new_version"
 
-        # 提交更改
-        print_green "提交更改..."
-        git add package.json CHANGELOG.md
-        git commit -m "release: v$new_version"
+            # 创建标签
+            print_green "创建标签..."
+            git tag -a "v$new_version" -m "Release v$new_version"
 
-        # 创建标签
-        print_green "创建标签..."
-        git tag -a "v$new_version" -m "Release v$new_version"
+            # 推送更改
+            print_green "\n推送更改到远程仓库..."
+            git push && git push --tags
 
-        # 推送更改
-        print_green "\n推送更改到远程仓库..."
-        git push && git push --tags
-
-        print_green "\n✨ 完成！新版本 v$new_version 已创建并推送"
-    else
-        print_yellow "操作已取消"
-        exit 0
+            print_green "\n✨ 完成！新版本 v$new_version 已创建并推送"
+        else
+            print_yellow "操作已取消"
+            exit 0
+        fi
     fi
 }
 
