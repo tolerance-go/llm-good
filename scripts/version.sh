@@ -86,7 +86,7 @@ calculate_new_version() {
         fi
     fi
 
-    # 读取从最近 tag 到现在的所有提交
+    # 读取从最近 tag 到现在的��有提交
     local git_log_range="HEAD"
     if [[ $current_version != "0.0.0" ]]; then
         git_log_range="v$current_version..HEAD"
@@ -97,25 +97,56 @@ calculate_new_version() {
     
     if [[ -z "$commits" ]]; then
         print_yellow "没有发现任何新的提交"
+        read -rp "是否要手动增加一个版本号？(Y/n) " manual_bump
+        if [[ -z "$manual_bump" || ${manual_bump,,} == "y" ]]; then
+            patch=$((patch + 1))
+            new_version="$major.$minor.$patch"
+            
+            # 创建 changelog
+            changelog+=("* bump: 手动更新版本号到 $new_version")
+            
+            # 更新 package.json
+            print_green "\n更新 package.json..."
+            update_package_version "$new_version"
+            
+            # 更新 changelog 文件
+            print_green "更新 CHANGELOG.md..."
+            update_changelog "$new_version" "${changelog[@]}"
+            
+            # 提交更改
+            print_green "提交更改..."
+            git add package.json CHANGELOG.md
+            git commit -m "bump: 手动更新版本号到 $new_version"
+            
+            # 创建 tag
+            print_green "创建标签..."
+            git tag -a "v$new_version" -m "Release v$new_version"
+            
+            print_green "\n✨ 完成！新版本 v$new_version 已创建"
+            print_green "请使用 'git push && git push --tags' 推送更改"
+            exit 0
+        else
+            print_yellow "操作已取消"
+            exit 0
+        fi
+        return
     fi
     
-    if [[ -n "$commits" ]]; then
-        while IFS= read -r commit_hash && IFS= read -r subject && IFS= read -r body; do
-            # 检查是否有破坏性变更
-            if [[ $subject == *"BREAKING CHANGE:"* ]] || [[ $body == *"BREAKING CHANGE:"* ]] || [[ $subject == *"!:"* ]]; then
-                has_breaking_change=true
-            fi
+    while IFS= read -r commit_hash && IFS= read -r subject && IFS= read -r body; do
+        # 检查是否有破坏性变更
+        if [[ $subject == *"BREAKING CHANGE:"* ]] || [[ $body == *"BREAKING CHANGE:"* ]] || [[ $subject == *"!:"* ]]; then
+            has_breaking_change=true
+        fi
 
-            # 检查提交类型
-            if [[ $subject =~ ^feat(\(.+\))?:.+ ]]; then
-                has_feat=true
-                changelog+=("* $subject ($commit_hash)")
-            elif [[ $subject =~ ^fix(\(.+\))?:.+ ]]; then
-                has_fix=true
-                changelog+=("* $subject ($commit_hash)")
-            fi
-        done < <(echo "$commits")
-    fi
+        # 检查提交类型
+        if [[ $subject =~ ^feat(\(.+\))?:.+ ]]; then
+            has_feat=true
+            changelog+=("* $subject ($commit_hash)")
+        elif [[ $subject =~ ^fix(\(.+\))?:.+ ]]; then
+            has_fix=true
+            changelog+=("* $subject ($commit_hash)")
+        fi
+    done < <(echo "$commits")
 
     # 解析当前版本号
     read -r major minor patch < <(parse_version "$current_version")
@@ -132,7 +163,7 @@ calculate_new_version() {
     elif [[ $has_fix == true ]]; then
         patch=$((patch + 1))
     else
-        print_yellow "没有发现版本���关的提交类型 (feat/fix)"
+        print_yellow "没有发现版本关的提交类型 (feat/fix)"
         read -rp "是否要手动增加一个版本号？(Y/n) " manual_bump
         if [[ -z "$manual_bump" || ${manual_bump,,} == "y" ]]; then
             patch=$((patch + 1))
