@@ -1,3 +1,13 @@
+# 0.3.1 (2024-12-26)
+
+* fix(build): 修复 version 脚本  (bfd95e9a)
+
+* fix(build): version 不准  (d3fa9253)
+
+* fix(build): version 丢失最近 commit  (48f8c688)
+
+* fix(build): version 不准  (ac04986d)
+
 # 0.3.0 (2024-12-26)
 
 * feat: 更新网站名称为 UNoCodeX 并重新设计网站内容 (3c3beb5cbee1abaf09e7a480e9700c0140233a61)
