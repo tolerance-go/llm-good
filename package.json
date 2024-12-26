@@ -31,8 +31,7 @@
     "changelog:first": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0",
     "prepare": "husky install",
     "commit": "git-cz",
-    "commitlint": "commitlint --edit",
-    "push:env": "bash scripts/push-env.sh"
+    "commitlint": "commitlint --edit"
   },
   "config": {
     "commitizen": {
