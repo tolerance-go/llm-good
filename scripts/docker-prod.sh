@@ -5,12 +5,6 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 # 获取项目根目录
 PROJECT_DIR="$( cd "$SCRIPT_DIR/.." && pwd )"
 
-# 检查 .env 文件是否存在
-if [ ! -f "$PROJECT_DIR/.env" ]; then
-    echo "错误: .env 文件不存在"
-    exit 1
-fi
-
 # 检查命令参数
 if [ -z "$1" ]; then
     echo "错误: 必须提供操作命令 (init-ssl|start|stop|restart|clean)"
