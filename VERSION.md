@@ -1,5 +1,37 @@
 # 版本管理脚本使用指南
 
+## 查看版本标签
+
+1. 列出所有标签：
+   ```bash
+   git tag
+   ```
+
+2. 按照版本号排序（从新到旧）：
+   ```bash
+   git tag --sort=-v:refname
+   ```
+
+3. 查看最新的标签：
+   ```bash
+   git describe --tags --abbrev=0
+   ```
+
+4. 查看标签详细信息：
+   ```bash
+   # 查看指定标签的详细信息
+   git show v1.0.0
+
+   # 查看所有标签及其对应的提交信息
+   git log --tags --simplify-by-decoration --pretty="format:%ai %d"
+   ```
+
+5. 按照模式匹配标签：
+   ```bash
+   # 查看所有 1.0.x 版本的标签
+   git tag -l "v1.0.*"
+   ```
+
 本项目使用 `scripts/version.sh` 脚本来管理版本号。该脚本遵循 [Conventional Commits](https://www.conventionalcommits.org/) 规范，自动根据 commit 历史计算新版本号并生成 changelog。
 
 ## 使用方法
@@ -100,7 +132,7 @@
 
 3. 性能问题：
    ```
-   fix(perf): 优化大数据列表渲染
+   fix(perf): 优化大数据列���渲染
    fix(performance): 解决内存泄漏问题
    fix(speed): 改善页面加载速度
    ```
