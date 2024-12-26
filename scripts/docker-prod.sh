@@ -42,20 +42,6 @@ case "$1" in
     init-ssl)
         echo "开始初始化 SSL 证书..."
         
-        # 检查是否已存在证书
-        if [ -d "certbot/conf/live/www.unocodex.com" ]; then
-            echo "警告: SSL 证书目录已存在，这可能意味着您已经配置过证书。"
-            echo "继续操作将尝试重新申请证书。是否继续？[y/N]"
-            read -r response
-            if [[ ! "$response" =~ ^[Yy]$ ]]; then
-                echo "操作已取消"
-                exit 0
-            fi
-            
-            echo "清理已存在的证书文件..."
-            rm -rf certbot
-        fi
-
         # 提示用户需要停止所有服务
         echo "注意：为了使用特殊的 Nginx 配置进行证书申请，需要先停止所有运行中的服务。"
         echo "停止后将仅启动配置了 ACME 验证的 Nginx 服务。是否继续？[y/N]"
@@ -139,7 +125,7 @@ case "$1" in
     *)
         echo "错误: 无效的命令"
         echo "使用方法: ./docker-prod.sh init-ssl|start|stop|restart"
-        echo "init-ssl: 初始化 SSL 证书（��首次部署需要）"
+        echo "init-ssl: 初始化 SSL 证书（仅首次部署需要）"
         echo "start:    启动所有服务"
         echo "stop:     停止所有服务"
         echo "restart:  重启所有服务"
