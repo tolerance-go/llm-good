@@ -13,12 +13,13 @@ fi
 
 # 检查命令参数
 if [ -z "$1" ]; then
-    echo "错误: 必须提供操作命令 (init-ssl|start|stop|restart)"
-    echo "使用方法: ./docker-prod.sh init-ssl|start|stop|restart"
+    echo "错误: 必须提供操作命令 (init-ssl|start|stop|restart|clean)"
+    echo "使用方法: ./docker-prod.sh init-ssl|start|stop|restart|clean"
     echo "init-ssl: 初始化 SSL 证书（仅首次部署需要）"
     echo "start:    启动所有服务"
     echo "stop:     停止所有服务"
     echo "restart:  重启所有服务"
+    echo "clean:    清除所有服务和卷"
     exit 1
 fi
 
@@ -66,7 +67,7 @@ case "$1" in
         NGINX_CONF=acme.conf docker compose -f docker-compose.prod.yml up -d nginx
         
         # 等待 Nginx 启动
-        echo "等待 Nginx 启动（最多等待 30 秒）..."
+        echo "等待 Nginx 启动（最多等��� 30 秒）..."
         for i in {1..6}; do
             if curl -s -o /dev/null -H "Host: www.unocodex.com" http://localhost/.well-known/acme-challenge/; then
                 echo "Nginx 已就绪！"
@@ -100,7 +101,7 @@ case "$1" in
             echo "✅ SSL 证书申请成功！"
             docker compose -f docker-compose.prod.yml down
             docker compose -f docker-compose.prod.yml up -d
-            echo "完成！您的网站现在应该可以通过 HTTPS 访问了。"
+            echo "完成！您的网站现在应该可以通过 HTTPS 访问了���"
         else
             echo "❌ 错误: SSL 证书申请失败 (错误代码: $CERT_EXIT_CODE)"
             echo "请检查以下几点："
@@ -122,13 +123,25 @@ case "$1" in
         docker compose -f docker-compose.prod.yml down
         docker compose -f docker-compose.prod.yml up -d
         ;;
+    clean)
+        echo "警告: 此操作将删除所有服务和卷数据，此操作不可恢复！是否继续？[y/N]"
+        read -r response
+        if [[ ! "$response" =~ ^[Yy]$ ]]; then
+            echo "操作已取消"
+            exit 0
+        fi
+        echo "开始清除所有服务和卷..."
+        docker compose -f docker-compose.prod.yml down -v --remove-orphans
+        echo "✅ 所有服务和卷已清除完毕！"
+        ;;
     *)
         echo "错误: 无效的命令"
-        echo "使用方法: ./docker-prod.sh init-ssl|start|stop|restart"
+        echo "使用方法: ./docker-prod.sh init-ssl|start|stop|restart|clean"
         echo "init-ssl: 初始化 SSL 证书（仅首次部署需要）"
         echo "start:    启动所有服务"
         echo "stop:     停止所有服务"
         echo "restart:  重启所有服务"
+        echo "clean:    清除所有服务和卷"
         exit 1
         ;;
 esac 
