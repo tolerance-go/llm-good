@@ -4,12 +4,18 @@
 parse_version() {
     local version=$1
     if [[ $version =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+        local major="${BASH_REMATCH[1]}"
+        local minor="${BASH_REMATCH[2]}"
+        local patch="${BASH_REMATCH[3]}"
+        
         if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
             # 如果是直接运行脚本，输出友好格式
-            printf "%d %d %d\n" "${BASH_REMATCH[1]}" "${BASH_REMATCH[2]}" "${BASH_REMATCH[3]}"
+            echo "$major $minor $patch"
         else
             # 如果是被其他脚本调用，输出数组格式
-            printf "%d\n%d\n%d\n" "${BASH_REMATCH[1]}" "${BASH_REMATCH[2]}" "${BASH_REMATCH[3]}"
+            echo "$major"
+            echo "$minor"
+            echo "$patch"
         fi
     else
         echo "无效的版本号格式: $version" >&2
@@ -22,7 +28,7 @@ format_version() {
     local major=$1
     local minor=$2
     local patch=$3
-    printf "%d.%d.%d" "$major" "$minor" "$patch"
+    echo "$major.$minor.$patch"
 }
 
 # 分析提交历史
@@ -120,9 +126,9 @@ analyze_commits() {
     # 计算新版本号
     local -a version_parts
     readarray -t version_parts < <(parse_version "$current_version")
-    local major=${version_parts[0]}
-    local minor=${version_parts[1]}
-    local patch=${version_parts[2]}
+    local major="${version_parts[0]}"
+    local minor="${version_parts[1]}"
+    local patch="${version_parts[2]}"
 
     if [[ $has_breaking_change == true ]]; then
         major=$((major + 1))
