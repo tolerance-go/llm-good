@@ -44,7 +44,7 @@ get_latest_tag() {
     local latest_tag
     local package_version
 
-    # 首先尝试从 git tag ���最近的标签
+    # 首先尝试从 git tag 最近的标签
     if latest_tag=$(git describe --tags --abbrev=0 2>/dev/null); then
         echo "$latest_tag" | sed 's/^v//'
         return
@@ -179,33 +179,34 @@ main() {
     # 检查工作区状态
     check_working_tree
 
-    # 获取最近的标签
+    # 获取最近��标签
     print_green "正在获取最近的标签..."
     latest_tag=$(get_latest_tag)
     print_yellow "最近的标签: $latest_tag"
 
     # 分析提交历史
     print_green "正在分析提交历史..."
-    read -r result changelog < <(analyze_commits "$latest_tag")
-
-    case $result in
-        "no_commits"|"no_version_commits")
-            print_yellow "没有发现版本相关的提交"
-            read -rp "是否要手动增加一个版本号？(Y/n) " manual_bump
-            if [[ -z "$manual_bump" || ${manual_bump,,} == "y" ]]; then
-                read -r major minor patch < <(parse_version "$latest_tag")
-                patch=$((patch + 1))
-                new_version="$major.$minor.$patch"
-                changelog=("* bump: 手动更新版本号到 $new_version")
-            else
-                print_yellow "操作已取消"
-                exit 0
-            fi
-            ;;
-        *)
-            new_version=$result
-            ;;
-    esac
+    # 使用数组来接收所有输出
+    mapfile -t output < <(analyze_commits "$latest_tag")
+    
+    if [[ ${#output[@]} -eq 0 ]]; then
+        print_yellow "没有发现版本相关的提交"
+        read -rp "是否要手动增加一个版本号？(Y/n) " manual_bump
+        if [[ -z "$manual_bump" || ${manual_bump,,} == "y" ]]; then
+            read -r major minor patch < <(parse_version "$latest_tag")
+            patch=$((patch + 1))
+            new_version="$major.$minor.$patch"
+            changelog=("* bump: 手动更新版本号到 $new_version")
+        else
+            print_yellow "操作已取消"
+            exit 0
+        fi
+    else
+        # 第一个元素是新版本号
+        new_version="${output[0]}"
+        # 其余元素是 changelog
+        changelog=("${output[@]:1}")
+    fi
 
     # 显示变更信息
     print_green "\n将要创建新版本: $new_version"
