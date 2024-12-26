@@ -2,26 +2,8 @@
 
 set -e
 
-# 颜色输出函数
-print_green() {
-    echo -e "\033[32m$1\033[0m"
-}
-
-print_yellow() {
-    echo -e "\033[33m$1\033[0m"
-}
-
-print_red() {
-    echo -e "\033[31m$1\033[0m"
-}
-
-# 从 package.json 读取版本号
-get_package_version() {
-    local package_json=$1
-    if [[ -f $package_json ]]; then
-        grep -o '"version": *"[^"]*"' "$package_json" | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+'
-    fi
-}
+# 加载工具函数
+source "$(dirname "$0")/version/utils.sh"
 
 # 更新 package.json 中的版本号
 update_package_version() {
@@ -39,161 +21,31 @@ update_package_version() {
     fi
 }
 
-# 获取最近的 tag 或 package.json 中的版本号
-get_latest_tag() {
-    local latest_tag
-    local package_version
-
-    # 首先尝试从 git tag 最近的标签
-    if latest_tag=$(git describe --tags --abbrev=0 2>/dev/null); then
-        echo "$latest_tag" | sed 's/^v//'
-        return
-    fi
-
-    # 如果没有标签，从 package.json 获取版本号
-    package_version=$(get_package_version "$(git rev-parse --show-toplevel)/package.json")
-    if [[ $package_version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-        echo "$package_version"
-        return
-    fi
-
-    # 如果都没有，返回初始版本号
-    echo "0.0.0"
-}
-
-# 解析版本号
-parse_version() {
-    local version=$1
-    if [[ $version =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
-        echo "${BASH_REMATCH[1]} ${BASH_REMATCH[2]} ${BASH_REMATCH[3]}"
-    else
-        print_red "无效的版本号格式: $version"
-        exit 1
-    fi
-}
-
-# 获取并分析提交历史
-analyze_commits() {
-    local current_version=$1
-    local has_breaking_change=false
-    local has_feat=false
-    local has_fix=false
-    local changelog=()
-    local commits
-
-    # 获取提交历史
-    if git rev-parse "v$current_version" >/dev/null 2>&1; then
-        # 如果当前版本存在对应的标签，获取从该标签到现在的提交
-        commits=$(git log "v$current_version..HEAD" --format="%H%n%s%n%b%n" --reverse)
-    else
-        # 如果当前版本没有对应的标签，获取所有提交
-        commits=$(git log --format="%H%n%s%n%b%n" --reverse)
-    fi
-
-    if [[ -z "$commits" ]]; then
-        echo "no_commits"
-        return
-    fi
-
-    # 分析提交类型
-    local has_version_related_commit=false
-    while IFS= read -r commit_hash && IFS= read -r subject && IFS= read -r body && IFS= read -r empty; do
-        # 截取 commit hash 的前 8 位
-        commit_hash=${commit_hash:0:8}
-        
-        if [[ $subject == *"BREAKING CHANGE:"* ]] || [[ $body == *"BREAKING CHANGE:"* ]] || [[ $subject == *"!:"* ]]; then
-            has_breaking_change=true
-            has_version_related_commit=true
-            changelog+=("* $subject ($commit_hash)")
-        elif [[ $subject =~ ^feat(\(.+\))?:.+ ]]; then
-            has_feat=true
-            has_version_related_commit=true
-            changelog+=("* $subject ($commit_hash)")
-        elif [[ $subject =~ ^fix(\(.+\))?:.+ ]]; then
-            has_fix=true
-            has_version_related_commit=true
-            changelog+=("* $subject ($commit_hash)")
-        fi
-    done < <(echo "$commits")
-
-    if [[ $has_version_related_commit == false ]]; then
-        echo "no_version_commits"
-        return
-    fi
-
-    # 计算新版本号
-    read -r major minor patch < <(parse_version "$current_version")
-    if [[ $has_breaking_change == true ]]; then
-        major=$((major + 1))
-        minor=0
-        patch=0
-    elif [[ $has_feat == true ]]; then
-        minor=$((minor + 1))
-        patch=0
-    elif [[ $has_fix == true ]]; then
-        patch=$((patch + 1))
-    fi
-
-    echo "$major.$minor.$patch" "${changelog[@]}"
-}
-
-# 更新 changelog
-update_changelog() {
-    local version=$1
-    shift
-    local changelog=("$@")
-    local changelog_file
-    changelog_file=$(git rev-parse --show-toplevel)/CHANGELOG.md
-    local date
-    date=$(date +%Y-%m-%d)
-    local temp_file
-    temp_file=$(mktemp)
-
-    {
-        echo "# $version ($date)"
-        echo
-        for change in "${changelog[@]}"; do
-            echo "$change"
-        done
-        echo
-        if [[ -f $changelog_file ]]; then
-            cat "$changelog_file"
-        fi
-    } > "$temp_file"
-
-    mv "$temp_file" "$changelog_file"
-}
-
-# 检查工作区状态
-check_working_tree() {
-    if ! git diff --quiet HEAD; then
+# 主流程
+main() {
+    # 检查工作区状态
+    if ! check_working_tree; then
         print_red "错误: 工作区不干净，请先提交或储藏您的更改"
         print_yellow "未提交的更改:"
         git status -s
         exit 1
     fi
-}
 
-# 主流程
-main() {
-    # 检查工作区状态
-    check_working_tree
-
-    # 获取最近��标签
+    # 获取最近的标签
     print_green "正在获取最近的标签..."
     latest_tag=$(get_latest_tag)
     print_yellow "最近的标签: $latest_tag"
 
     # 分析提交历史
     print_green "正在分析提交历史..."
-    # 使用数组来接收所有输出
-    mapfile -t output < <(analyze_commits "$latest_tag")
+    # 使用独立的 analyze_commits.sh 脚本
+    readarray -t output < <(bash "$(dirname "$0")/version/analyze_commits.sh" "$latest_tag")
     
     if [[ ${#output[@]} -eq 0 ]]; then
         print_yellow "没有发现版本相关的提交"
         read -rp "是否要手动增加一个版本号？(Y/n) " manual_bump
         if [[ -z "$manual_bump" || ${manual_bump,,} == "y" ]]; then
-            read -r major minor patch < <(parse_version "$latest_tag")
+            read -r major minor patch < <(bash "$(dirname "$0")/version/analyze_commits.sh" parse_version "$latest_tag")
             patch=$((patch + 1))
             new_version="$major.$minor.$patch"
             changelog=("* bump: 手动更新版本号到 $new_version")
@@ -217,6 +69,12 @@ main() {
         done
     fi
 
+    # 预览 changelog
+    print_green "\n预览 changelog 内容:"
+    bash "$(dirname "$0")/version/update_changelog.sh" --preview "$new_version" "${changelog[@]}" | while IFS= read -r line; do
+        print_yellow "  $line"
+    done
+
     # 确认操作
     read -rp "是否继续？(Y/n) " confirmation
     if [[ -z "$confirmation" || ${confirmation,,} == "y" ]]; then
@@ -225,7 +83,7 @@ main() {
         update_package_version "$new_version"
 
         print_green "更新 CHANGELOG.md..."
-        update_changelog "$new_version" "${changelog[@]}"
+        bash "$(dirname "$0")/version/update_changelog.sh" "$new_version" "${changelog[@]}"
 
         # 提交更改
         print_green "提交更改..."
