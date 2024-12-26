@@ -25,11 +25,11 @@ fi
 # 切换到项目根目录
 cd "$PROJECT_DIR"
 
-# 从 package.json 读取版本号
-VERSION=$(grep -o '"version": *"[^"]*"' package.json | grep -o '"[^"]*"$' | tr -d '"')
+# 从 lerna.json 读取版本号（替换原来从 package.json 读取的部分）
+VERSION=$(grep -o '"version": *"[^"]*"' lerna.json | grep -o '"[^"]*"$' | tr -d '"')
 
 if [ -z "$VERSION" ]; then
-    echo "错误: 无法从 package.json 读取版本号"
+    echo "错误: 无法从 lerna.json 读取版本号"
     exit 1
 fi
 
