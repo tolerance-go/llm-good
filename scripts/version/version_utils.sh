@@ -35,7 +35,7 @@ bump_version() {
     local new_version
     new_version=$(format_version "$major" "$minor" "$patch")
     echo "$new_version"
-    echo "* bump: 手动更新版本号到 $new_version"
+    echo "* bump to $new_version"
 }
 
 # 如果直接运��此脚本，则执行测试
