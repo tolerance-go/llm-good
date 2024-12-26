@@ -9,10 +9,15 @@ function printGreen(message) {
 
 function execCommand(command) {
   try {
-    execSync(command, { 
-      stdio: 'inherit',
-      shell: process.platform === 'win32' ? 'bash' : '/bin/bash'
-    });
+    if (process.platform === 'win32' && command.startsWith('bash ')) {
+      // Windows 环境下，使用 Git Bash 的路径
+      const gitBashCommand = command.replace('bash ', '');
+      execSync(`"C:\\Program Files\\Git\\bin\\bash.exe" -c "${gitBashCommand}"`, {
+        stdio: 'inherit'
+      });
+    } else {
+      execSync(command, { stdio: 'inherit' });
+    }
   } catch (error) {
     console.error(chalk.red(`执行命令失败: ${command}`));
     console.error(error);
