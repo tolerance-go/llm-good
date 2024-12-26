@@ -44,7 +44,7 @@ get_latest_tag() {
     local latest_tag
     local package_version
 
-    # 首先尝试从 git tag 取最近的标签
+    # 首先尝试从 git tag ���最近的标签
     if latest_tag=$(git describe --tags --abbrev=0 2>/dev/null); then
         echo "$latest_tag" | sed 's/^v//'
         return
@@ -82,12 +82,12 @@ analyze_commits() {
     local commits
 
     # 获取提交历史
-    if git tag -l "v$current_version" | grep -q .; then
+    if git rev-parse "v$current_version" >/dev/null 2>&1; then
         # 如果当前版本存在对应的标签，获取从该标签到现在的提交
-        commits=$(git log "v$current_version..HEAD" --format="%H%n%s%n%b" --reverse 2>/dev/null)
+        commits=$(git log "v$current_version..HEAD" --format="%H%n%s%n%b" --reverse)
     else
         # 如果当前版本没有对应的标签，获取所有提交
-        commits=$(git log --format="%H%n%s%n%b" --reverse 2>/dev/null)
+        commits=$(git log --format="%H%n%s%n%b" --reverse)
     fi
 
     if [[ -z "$commits" ]]; then
@@ -98,6 +98,9 @@ analyze_commits() {
     # 分析提交类型
     local has_version_related_commit=false
     while IFS= read -r commit_hash && IFS= read -r subject && IFS= read -r body; do
+        # 截取 commit hash 的前 8 位
+        commit_hash=${commit_hash:0:8}
+        
         if [[ $subject == *"BREAKING CHANGE:"* ]] || [[ $body == *"BREAKING CHANGE:"* ]] || [[ $subject == *"!:"* ]]; then
             has_breaking_change=true
             has_version_related_commit=true
