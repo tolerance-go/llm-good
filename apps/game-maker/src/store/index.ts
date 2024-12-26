@@ -1,10 +1,10 @@
 import { configureStore } from '@reduxjs/toolkit'
-import chatReducer from './chatSlice.ts'
+import gameReducer from './gameSlice'
 
 export const store = configureStore({
   reducer: {
-    chat: chatReducer,
-  },
+    game: gameReducer
+  }
 })
 
 export type RootState = ReturnType<typeof store.getState>

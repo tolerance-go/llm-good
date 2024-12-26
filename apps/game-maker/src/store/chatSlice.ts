@@ -10,11 +10,13 @@ interface Message {
 interface ChatState {
   messages: Message[]
   isLoading: boolean
+  isChatMode: boolean
 }
 
 const initialState: ChatState = {
   messages: [],
   isLoading: false,
+  isChatMode: false,
 }
 
 export const chatSlice = createSlice({
@@ -34,8 +36,11 @@ export const chatSlice = createSlice({
     clearMessages: (state) => {
       state.messages = []
     },
+    setChatMode: (state, action: PayloadAction<boolean>) => {
+      state.isChatMode = action.payload
+    },
   },
 })
 
-export const { addMessage, setLoading, clearMessages } = chatSlice.actions
+export const { addMessage, setLoading, clearMessages, setChatMode } = chatSlice.actions
 export default chatSlice.reducer 
