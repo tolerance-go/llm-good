@@ -27,8 +27,8 @@ const command = process.argv[2];
 
 switch (command) {
   case 'build':
-    // 先构建所有服务，使用 .env.prod 文件
-    runCommand(`docker compose --env-file .env.prod build --build-arg VERSION=${version}`);
+    // 使用 docker-compose.build.yml 构建所有服务
+    runCommand(`docker compose -f docker-compose.build.yml --env-file .env.prod build --no-cache`);
     
     // 构建完成后，为所有服务打上对应的标签
     services.forEach(service => {
@@ -44,16 +44,14 @@ switch (command) {
     // 如果指定了特定服务
     const service = process.argv[3];
     if (service && services.includes(service)) {
-      const imageTag = `llm-good-${service}:${version}`;
       const registryTag = `registry.cn-heyuan.aliyuncs.com/llm-good/${service}:${version}`;
-      runCommand(`docker tag ${imageTag} ${registryTag} && docker push ${registryTag}`);
+      runCommand(`docker push ${registryTag}`);
     } 
     // 如果没有指定服务，推送所有服务
     else if (!service) {
       services.forEach(svc => {
-        const imageTag = `llm-good-${svc}:${version}`;
         const registryTag = `registry.cn-heyuan.aliyuncs.com/llm-good/${svc}:${version}`;
-        runCommand(`docker tag ${imageTag} ${registryTag} && docker push ${registryTag}`);
+        runCommand(`docker push ${registryTag}`);
       });
     } else {
       console.error(`Invalid service: ${service}`);

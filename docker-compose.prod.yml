@@ -35,30 +35,18 @@ services:
     image: registry.cn-heyuan.aliyuncs.com/llm-good/website:${VERSION}
     expose:
       - 80
-    environment:
-      - NODE_ENV=${NODE_ENV:-production}
     restart: always
 
   frontend:
     image: registry.cn-heyuan.aliyuncs.com/llm-good/frontend:${VERSION}
     expose:
       - 80
-    environment:
-      - VITE_API_URL=/api
-    depends_on:
-      - backend
     restart: always
 
   backend:
     image: registry.cn-heyuan.aliyuncs.com/llm-good/backend:${VERSION}
     expose:
       - ${BACKEND_PORT:-3000}
-    environment:
-      - NODE_ENV=production
-      - DATABASE_URL=${DATABASE_URL}
-      - VOLCENGINE_API_KEY=${VOLCENGINE_API_KEY}
-      - VOLCENGINE_API_SECRET=${VOLCENGINE_API_SECRET}
-      - VOLCENGINE_HOST=${VOLCENGINE_HOST}
     depends_on:
       db:
         condition: service_healthy
@@ -70,11 +58,6 @@ services:
       - "3306:3306"
     expose:
       - 3306
-    environment:
-      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
-      - MYSQL_DATABASE=${MYSQL_DATABASE}
-      - MYSQL_USER=${MYSQL_USER}
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
     volumes:
       - mysql_data:/var/lib/mysql
     command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
@@ -89,8 +72,6 @@ services:
     image: registry.cn-heyuan.aliyuncs.com/llm-good/game-hub:${VERSION}
     expose:
       - 80
-    environment:
-      - NODE_ENV=${NODE_ENV:-production}
     depends_on:
       - backend
     restart: always
@@ -99,9 +80,6 @@ services:
     image: registry.cn-heyuan.aliyuncs.com/llm-good/game-maker:${VERSION}
     expose:
       - 80
-    environment:
-      - VITE_API_URL=/api
-      - NODE_ENV=${NODE_ENV:-production}
     depends_on:
       - backend
     restart: always

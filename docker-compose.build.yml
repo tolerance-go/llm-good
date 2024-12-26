@@ -1,0 +1,88 @@
+services:
+  nginx:
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile
+      args:
+        - VERSION=${VERSION}
+    image: llm-good-nginx:${VERSION}
+
+  website:
+    build:
+      context: .
+      dockerfile: apps/website/Dockerfile
+      args:
+        - VERSION=${VERSION}
+        - NODE_ENV=${NODE_ENV:-production}
+        - VITE_SITE_TITLE=${VITE_SITE_TITLE}
+        - VITE_SITE_DESCRIPTION=${VITE_SITE_DESCRIPTION}
+        - VITE_API_URL=${VITE_API_URL}
+    image: llm-good-website:${VERSION}
+
+  frontend:
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile
+      args:
+        - VERSION=${VERSION}
+        - VITE_API_URL=${VITE_API_URL}
+        - VITE_APP_TITLE=${VITE_APP_TITLE}
+        - VITE_SOCKET_URL=${VITE_SOCKET_URL}
+        - VITE_ENABLE_VCONSOLE=${VITE_ENABLE_VCONSOLE:-false}
+        - VITE_PUBLIC_PATH=${VITE_PUBLIC_PATH:-/}
+    image: llm-good-frontend:${VERSION}
+
+  backend:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+      args:
+        - VERSION=${VERSION}
+        - NODE_ENV=production
+        - DATABASE_URL=${DATABASE_URL}
+        - JWT_SECRET=${JWT_SECRET}
+        - REDIS_URL=${REDIS_URL}
+        - VOLCENGINE_API_KEY=${VOLCENGINE_API_KEY}
+        - VOLCENGINE_API_SECRET=${VOLCENGINE_API_SECRET}
+        - VOLCENGINE_HOST=${VOLCENGINE_HOST}
+        - SOCKET_PATH=${SOCKET_PATH}
+        - CORS_ORIGIN=${CORS_ORIGIN}
+    image: llm-good-backend:${VERSION}
+
+  db:
+    build:
+      context: .
+      dockerfile: apps/backend/db.Dockerfile
+      args:
+        - VERSION=${VERSION}
+        - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+        - MYSQL_DATABASE=${MYSQL_DATABASE}
+        - MYSQL_USER=${MYSQL_USER}
+        - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+    image: llm-good-db:${VERSION}
+
+  game-hub:
+    build:
+      context: .
+      dockerfile: apps/game-hub/Dockerfile
+      args:
+        - VERSION=${VERSION}
+        - NODE_ENV=${NODE_ENV:-production}
+        - VITE_API_URL=${VITE_API_URL}
+        - VITE_APP_TITLE=${VITE_APP_TITLE}
+        - VITE_SOCKET_URL=${VITE_SOCKET_URL}
+        - VITE_PUBLIC_PATH=${VITE_PUBLIC_PATH:-/game-hub/}
+    image: llm-good-game-hub:${VERSION}
+
+  game-maker:
+    build:
+      context: .
+      dockerfile: apps/game-maker/Dockerfile
+      args:
+        - VERSION=${VERSION}
+        - NODE_ENV=${NODE_ENV:-production}
+        - VITE_API_URL=${VITE_API_URL}
+        - VITE_APP_TITLE=${VITE_APP_TITLE}
+        - VITE_SOCKET_URL=${VITE_SOCKET_URL}
+        - VITE_PUBLIC_PATH=${VITE_PUBLIC_PATH:-/game-maker/}
+    image: llm-good-game-maker:${VERSION} 
