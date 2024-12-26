@@ -86,7 +86,7 @@ calculate_new_version() {
         fi
     fi
 
-    # 读取从最近 tag 到现在的所有提交
+    # 读取从最近 tag 到现在的��有提交
     local git_log_range="HEAD"
     if [[ $current_version != "0.0.0" ]]; then
         git_log_range="v$current_version..HEAD"
@@ -210,11 +210,16 @@ main() {
     # 获取最近的 tag
     print_green "正在获取最近的标签..."
     latest_tag=$(get_latest_tag)
-    print_yellow "最近的标签: $latest_tag"
+    print_yellow "最近的标���: $latest_tag"
 
     # 计算新版本号
     print_green "正在分析 commit 历史..."
     read -r new_version changelog < <(calculate_new_version "$latest_tag")
+
+    # 如果 calculate_new_version 已经处理完（手动增加版本号的情况），这里就直接退出
+    if [[ $? -ne 0 ]]; then
+        exit $?
+    fi
 
     # 显示变更信息
     print_green "\n将要创建新版本: $new_version"
