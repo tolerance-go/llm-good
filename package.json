@@ -27,12 +27,28 @@
     "version": "lerna version",
     "publish": "lerna publish from-package",
     "changed": "lerna changed",
-    "diff": "lerna diff"
+    "diff": "lerna diff",
+    "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s",
+    "changelog:first": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0",
+    "prepare": "husky install",
+    "commit": "git-cz",
+    "commitlint": "commitlint --edit"
+  },
+  "config": {
+    "commitizen": {
+      "path": "@commitlint/cz-commitlint"
+    }
   },
   "devDependencies": {
+    "@commitlint/cli": "^19.6.1",
+    "@commitlint/config-conventional": "^19.6.0",
+    "@commitlint/cz-commitlint": "^19.2.0",
     "chalk": "^4.1.2",
+    "commitizen": "^4.3.0",
+    "conventional-changelog-cli": "^5.0.0",
     "cross-env": "^7.0.3",
     "dotenv": "^16.4.7",
+    "husky": "^9.0.11",
     "lerna": "^8.1.9"
   }
 }

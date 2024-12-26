@@ -6,10 +6,13 @@
     "version": {
       "conventionalCommits": true,
       "message": "chore(release): publish %s",
-      "changelogPreset": "angular"
+      "changelogPreset": "angular",
+      "createRelease": "github",
+      "changelog": true
     },
     "publish": {
-      "message": "chore(release): publish %s"
+      "message": "chore(release): publish %s",
+      "conventionalCommits": true
     }
   },
   "packages": ["apps/*"],
