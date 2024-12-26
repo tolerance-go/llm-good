@@ -34,32 +34,14 @@ format_version() {
 # 分析提交历史
 analyze_commits() {
     local current_version=$1
+    local commits=$2  # 提交历史内容
     local has_breaking_change=false
     local has_feat=false
     local has_fix=false
     local changelog=()
-    local commits
 
     echo "开始分析提交历史..." >&2
     echo "当前版本: $current_version" >&2
-
-    # 获取提交历史，使用 %B 获取完整的提交信息
-    if git rev-parse "v$current_version" >/dev/null 2>&1; then
-        echo "找到版本标签 v$current_version，获取从该标签到现在的提交" >&2
-        commits=$(git log "v$current_version..HEAD" --format="%H%n%B%n----------" --reverse)
-    else
-        # 如果找不到指定的版本标签，尝试获取最近的标签
-        local latest_tag
-        if latest_tag=$(git describe --tags --abbrev=0 2>/dev/null); then
-            echo "找到最近的标签 $latest_tag，获取从该标签到现在的提交" >&2
-            commits=$(git log "$latest_tag..HEAD" --format="%H%n%B%n----------" --reverse)
-            # 更新当前版本为最近的标签版本（去掉 v 前缀）
-            current_version=${latest_tag#v}
-        else
-            echo "未找到任何标签，获取所有提交" >&2
-            commits=$(git log --format="%H%n%B%n----------" --reverse)
-        fi
-    fi
 
     if [[ -z "$commits" ]]; then
         echo "没有找到任何提交" >&2
@@ -162,6 +144,7 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
         parse_version "$@"
     else
         current_version=${1:-"0.0.0"}
-        analyze_commits "$current_version"
+        commits=${2:-""}
+        analyze_commits "$current_version" "$commits"
     fi
 fi 

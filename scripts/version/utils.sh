@@ -15,25 +15,31 @@ print_red() {
 
 # 从 package.json 读取版本号
 get_package_version() {
-    local package_json=$1
-    if [[ -f $package_json ]]; then
-        grep -o '"version": *"[^"]*"' "$package_json" | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+'
+    local package_content=$1  # package.json 内容
+    
+    if [[ -n "$package_content" ]]; then
+        echo "$package_content" | grep -o '"version": *"[^"]*"' | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+'
     fi
 }
 
 # 获取最近的 tag 或 package.json 中的版本号
 get_latest_tag() {
+    local git_tags=$1  # git tags 列表
+    local package_content=$2  # package.json 内容
     local latest_tag
     local package_version
 
-    # 首先尝试从 git tag 获取最近的标签
-    if latest_tag=$(git describe --tags --abbrev=0 2>/dev/null); then
-        echo "$latest_tag" | sed 's/^v//'
-        return
+    if [[ -n "$git_tags" ]]; then
+        # 如果提供了 tags 列表，从中获取最新的
+        latest_tag=$(echo "$git_tags" | grep '^v[0-9]\+\.[0-9]\+\.[0-9]\+$' | sort -V | tail -n 1)
+        if [[ -n "$latest_tag" ]]; then
+            echo "${latest_tag#v}"
+            return
+        fi
     fi
 
-    # 如果没有标签，从 package.json 获取版本号
-    package_version=$(get_package_version "$(git rev-parse --show-toplevel)/package.json")
+    # 如果没有标签，从 package.json 内容获取版本号
+    package_version=$(get_package_version "$package_content")
     if [[ $package_version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
         echo "$package_version"
         return
@@ -45,10 +51,8 @@ get_latest_tag() {
 
 # 检查工作区状态
 check_working_tree() {
-    if ! git diff --quiet HEAD; then
-        return 1
-    fi
-    return 0
+    local git_status=$1  # git status 输出
+    [[ -z "$git_status" ]]
 }
 
 # 如果直接运行此脚本，则执行测试
