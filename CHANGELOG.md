@@ -1,3 +1,19 @@
+# Change Log
+
+All notable changes to this project will be documented in this file.
+See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
+
+## [1.0.1](https://github.com/tolerance-go/llm-good/compare/v0.3.5...v1.0.1) (2024-12-26)
+
+
+### Bug Fixes
+
+* 移除重复的 MySQL 初始化脚本挂载 ([9507063](https://github.com/tolerance-go/llm-good/commit/9507063240d417965213b03d938c8a1711c2e229))
+
+
+
+
+
 ## <small>0.3.5 (2024-12-26)</small>
 
 * release: v0.3.5 ([7837b0c](https://github.com/tolerance-go/llm-good/commit/7837b0c))
@@ -169,6 +185,3 @@
 * chore ([8b54d46](https://github.com/tolerance-go/llm-good/commit/8b54d46))
 * chore ([d4e890a](https://github.com/tolerance-go/llm-good/commit/d4e890a))
 * first commit ([7cabbec](https://github.com/tolerance-go/llm-good/commit/7cabbec))
-
-
-
