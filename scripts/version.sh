@@ -86,27 +86,32 @@ calculate_new_version() {
         fi
     fi
 
-    # 读取从最近 tag 到现在的��有提交
+    # 读取从最近 tag 到现在的所有提交
     local git_log_range="HEAD"
     if [[ $current_version != "0.0.0" ]]; then
         git_log_range="v$current_version..HEAD"
     fi
 
-    while IFS= read -r commit_hash && IFS= read -r subject && IFS= read -r body; do
-        # 检查是否有破坏性变更
-        if [[ $subject == *"BREAKING CHANGE:"* ]] || [[ $body == *"BREAKING CHANGE:"* ]] || [[ $subject == *"!:"* ]]; then
-            has_breaking_change=true
-        fi
+    local commits
+    commits=$(git log "$git_log_range" --format="%H%n%s%n%b" --reverse 2>/dev/null)
+    
+    if [[ -n "$commits" ]]; then
+        while IFS= read -r commit_hash && IFS= read -r subject && IFS= read -r body; do
+            # 检查是否有破坏性变更
+            if [[ $subject == *"BREAKING CHANGE:"* ]] || [[ $body == *"BREAKING CHANGE:"* ]] || [[ $subject == *"!:"* ]]; then
+                has_breaking_change=true
+            fi
 
-        # 检查提交类型
-        if [[ $subject =~ ^feat(\(.+\))?:.+ ]]; then
-            has_feat=true
-            changelog+=("* $subject ($commit_hash)")
-        elif [[ $subject =~ ^fix(\(.+\))?:.+ ]]; then
-            has_fix=true
-            changelog+=("* $subject ($commit_hash)")
-        fi
-    done < <(git log "$git_log_range" --format="%H%n%s%n%b" --reverse 2>/dev/null || echo)
+            # 检查提交类型
+            if [[ $subject =~ ^feat(\(.+\))?:.+ ]]; then
+                has_feat=true
+                changelog+=("* $subject ($commit_hash)")
+            elif [[ $subject =~ ^fix(\(.+\))?:.+ ]]; then
+                has_fix=true
+                changelog+=("* $subject ($commit_hash)")
+            fi
+        done < <(echo "$commits")
+    fi
 
     # 解析当前版本号
     read -r major minor patch < <(parse_version "$current_version")
@@ -124,8 +129,8 @@ calculate_new_version() {
         patch=$((patch + 1))
     else
         print_yellow "没有发现版本相关的提交类型 (feat/fix)"
-        read -rp "是否要手动更新版本号？(y/N) " manual_bump
-        if [[ ${manual_bump,,} == "y" ]]; then
+        read -rp "是否要手动更新版本号？(Y/n) " manual_bump
+        if [[ -z "$manual_bump" || ${manual_bump,,} == "y" ]]; then
             patch=$((patch + 1))
             new_version="$major.$minor.$patch"
             
