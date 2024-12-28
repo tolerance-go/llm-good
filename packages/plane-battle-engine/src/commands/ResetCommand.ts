@@ -1,41 +1,35 @@
-import { GameCommand, CommandType, CommandTypeEnum } from '../types/command-types';
+import { GameCommand, CommandType, CommandTypeEnum, CommandReturnMap } from '../types/command-types';
 import { GameConfig } from '../types/config';
 import { StateManager } from '../core/managers/StateManager';
-import { LogCollector } from '../utils/LogCollector';
 import { GameStateController } from '../states/GameStateController';
+import { EventService } from '../core/services/EventService';
 
 export class ResetCommand implements GameCommand {
   private config: GameConfig;
-  private logger: LogCollector;
+  private eventService: EventService;
 
   constructor(config: GameConfig) {
     this.config = config;
-    this.logger = LogCollector.getInstance();
+    this.eventService = new EventService();
   }
 
   getName(): CommandType {
     return CommandTypeEnum.RESET;
   }
 
-  execute(stateManager: StateManager) {
-    if (!stateManager) {
-      throw new Error('StateManager not set');
-    }
-
+  async execute(stateManager: StateManager): Promise<CommandReturnMap[CommandTypeEnum.RESET]> {
     const state = stateManager.getState();
-    
-    // 记录重置日志
-    this.logger.addLog('ResetCommand', 'Game reset command executed');
+    const gameStateController = stateManager.getController<GameStateController>(GameStateController);
 
-    // 通过 StateManager 获取 GameStateController 来处理重置
-    const gameStateController = stateManager.getController(GameStateController);
     if (gameStateController) {
       gameStateController.reset(state);
+      return {
+        success: true
+      };
     }
 
-    // 返回重置结果
     return {
-      success: true
+      success: false
     };
   }
 } 

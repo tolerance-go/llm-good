@@ -32,31 +32,23 @@ interface StateController {
 }
 
 export class StateManager {
-  private static instance: StateManager;
   private state: GameState;
   private config: GameConfig;
   private eventCenter: EventService;
   private controllers: StateController[] = [];
 
-  private constructor(config: GameConfig) {
+  constructor(config: GameConfig, eventService: EventService) {
     this.config = config;
-    this.eventCenter = EventService.getInstance();
+    this.eventCenter = eventService;
     this.state = this.initializeState();
     
     // 初始化所有控制器
     this.controllers = [
-      new GameStateController(config),
-      new PlayerStateController(config),
-      new EnemyStateController(config),
-      new BulletStateControllerr(config),
+      new GameStateController(config, eventService),
+      new PlayerStateController(config, eventService),
+      new EnemyStateController(config, eventService),
+      new BulletStateControllerr(config, eventService),
     ];
-  }
-
-  public static getInstance(config: GameConfig): StateManager {
-    if (!StateManager.instance) {
-      StateManager.instance = new StateManager(config);
-    }
-    return StateManager.instance;
   }
 
   private initializeState(): GameState {
@@ -197,7 +189,9 @@ export class StateManager {
   }
 
   // 获取特定类型的控制器
-  getController<T extends StateController>(controllerType: new (config: GameConfig) => T): T | undefined {
+  getController<T extends StateController>(
+    controllerType: new (config: GameConfig, eventService: EventService) => T
+  ): T | undefined {
     return this.controllers.find((controller): controller is T => controller instanceof controllerType);
   }
 } 

@@ -11,10 +11,10 @@ export class StartButtonRenderer extends BaseUIRenderer {
   private logger: LogCollector;
   private eventService: EventService;
 
-  constructor() {
+  constructor(eventService: EventService) {
     super();
     this.logger = LogCollector.getInstance();
-    this.eventService = EventService.getInstance();
+    this.eventService = eventService;
     this.logger.addLog('StartButtonRenderer', '创建开始按钮渲染器实例');
   }
 

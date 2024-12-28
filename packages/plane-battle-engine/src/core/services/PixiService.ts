@@ -7,21 +7,13 @@ import { LogCollector } from '../../utils/LogCollector';
  * @description PixiJS渲染服务 - 负责管理PixiJS应用实例和底层渲染功能
  */
 export class PixiService {
-  private static instance: PixiService | null = null;
   private app: PIXI.Application | null = null;
   private logger: LogCollector;
   private mainContainer: PIXI.Container | null = null;
 
-  private constructor() {
+  constructor() {
     this.logger = LogCollector.getInstance();
     this.logger.addLog('PixiService', '初始化PixiJS服务');
-  }
-
-  public static getInstance(): PixiService {
-    if (!PixiService.instance) {
-      PixiService.instance = new PixiService();
-    }
-    return PixiService.instance;
   }
 
   /**

@@ -20,27 +20,20 @@
  * @singleton 使用单例模式，确保全局只有一个命令中心实例
  */
 
-import { GameCommand, CommandType, CommandDataMap, CommandParams, CommandReturnMap, CommandTypeEnum } from '../../types/command-types';
-import { EventService } from './EventService';
+import { GameCommand } from '../../types/command-types';
 import { StateManager } from '../managers/StateManager';
+import { CommandType, CommandDataMap, CommandReturnMap } from '../../types/command-types';
+import { EventService } from './EventService';
 import { GameEventType } from '../../types/events';
 
 export class CommandService {
-  private static instance: CommandService;
-  private eventCenter: EventService;
-  private stateManager: StateManager;
   private commands: Map<CommandType, GameCommand> = new Map();
+  private stateManager: StateManager;
+  private eventService: EventService;
 
-  private constructor(stateManager: StateManager) {
-    this.eventCenter = EventService.getInstance();
+  constructor(stateManager: StateManager, eventService: EventService) {
     this.stateManager = stateManager;
-  }
-
-  public static getInstance(stateManager?: StateManager): CommandService {
-    if (!CommandService.instance && stateManager) {
-      CommandService.instance = new CommandService(stateManager);
-    }
-    return CommandService.instance;
+    this.eventService = eventService;
   }
 
   public registerCommand(command: GameCommand): void {
@@ -48,57 +41,54 @@ export class CommandService {
   }
 
   public async executeCommand<T extends CommandType>(
-    commandType: T, 
+    commandType: T,
     params: CommandDataMap[T]
-  ): Promise<void | CommandReturnMap[T]> {
+  ): Promise<CommandReturnMap[T]> {
     const command = this.commands.get(commandType);
     if (command) {
-      console.log('Executing command:', commandType, params);
       try {
-        // 执行命令
-        const result = await command.execute(this.stateManager, params as CommandParams);
-
-        // 发送命令执行事件
-        switch (commandType) {
-          case CommandTypeEnum.MOVE: {
-            const moveParams = params as CommandDataMap[typeof CommandTypeEnum.MOVE];
-            this.eventCenter.emit(GameEventType.PLAYER_MOVE, {
-              type: 'move',
-              data: {
-                x: moveParams.direction.x,
-                y: moveParams.direction.y
-              }
-            });
-            break;
-          }
-          case CommandTypeEnum.SHOOT: {
-            const shootParams = params as CommandDataMap[typeof CommandTypeEnum.SHOOT];
-            this.eventCenter.emit(GameEventType.PLAYER_SHOOT, {
-              position: shootParams.position
-            });
-            break;
-          }
-          case CommandTypeEnum.PAUSE:
-            this.eventCenter.emit(GameEventType.GAME_PAUSE, undefined);
-            break;
-          case CommandTypeEnum.RESUME:
-            this.eventCenter.emit(GameEventType.GAME_RESUME, undefined);
-            break;
-          case CommandTypeEnum.RESET:
-            this.eventCenter.emit(GameEventType.GAME_RESET, undefined);
-            break;
-        }
-
-        return result as void | CommandReturnMap[T];
+        const result = await command.execute(this.stateManager, params);
+        this.emitCommandEvent(commandType, params);
+        return result as CommandReturnMap[T];
       } catch (error) {
         console.error(`Error executing command ${commandType}:`, error);
         throw error;
       }
     } else {
-      const error = new Error(`Command ${commandType} not found`);
-      console.warn(error.message);
-      throw error;
+      throw new Error(`Command ${commandType} not found`);
     }
+  }
+
+  private emitCommandEvent<T extends CommandType>(commandType: T, params: CommandDataMap[T]): void {
+    switch (commandType) {
+      case 'move':
+        this.eventService.emit(GameEventType.PLAYER_MOVE, {
+          type: 'move',
+          data: {
+            x: (params as CommandDataMap['move']).direction.x,
+            y: (params as CommandDataMap['move']).direction.y
+          }
+        });
+        break;
+      case 'shoot':
+        this.eventService.emit(GameEventType.PLAYER_SHOOT, {
+          position: (params as CommandDataMap['shoot']).position
+        });
+        break;
+      case 'pause':
+        this.eventService.emit(GameEventType.GAME_PAUSE, undefined);
+        break;
+      case 'resume':
+        this.eventService.emit(GameEventType.GAME_RESUME, undefined);
+        break;
+      case 'reset':
+        this.eventService.emit(GameEventType.GAME_RESET, undefined);
+        break;
+    }
+  }
+
+  public getCommand(commandType: CommandType): GameCommand | undefined {
+    return this.commands.get(commandType);
   }
 
   public hasCommand(commandType: CommandType): boolean {

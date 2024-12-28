@@ -11,11 +11,11 @@ export class UIStateController {
   private logger: LogCollector;
   private startButtonController: StartButtonStateController;
 
-  constructor(config: GameConfig) {
+  constructor(config: GameConfig, eventService: EventService) {
     this.config = config;
-    this.eventService = EventService.getInstance();
+    this.eventService = eventService;
     this.logger = LogCollector.getInstance();
-    this.startButtonController = new StartButtonStateController(config);
+    this.startButtonController = new StartButtonStateController(config, eventService);
     this.logger.addLog('UIStateController', '初始化UI状态控制器');
     this.initializeEventListeners();
   }

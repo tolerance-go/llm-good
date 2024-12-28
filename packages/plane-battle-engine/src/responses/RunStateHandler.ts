@@ -1,15 +1,14 @@
 import { BaseResponseHandler } from '../abstract/BaseResponseHandler';
 import { GameEventType, GameEventData } from '../types/events';
 import { GameState } from '../types/state';
-import { GameConfig } from '../types/config';
 import { EventService } from '../core/services/EventService';
 
 export class RunStateHandler extends BaseResponseHandler {
-  private eventCenter: EventService;
+  private eventService: EventService;
 
-  constructor() {
+  constructor(eventService: EventService) {
     super();
-    this.eventCenter = EventService.getInstance();
+    this.eventService = eventService;
   }
 
   getName(): string {
@@ -26,7 +25,7 @@ export class RunStateHandler extends BaseResponseHandler {
     return 1;
   }
 
-  handle(eventType: GameEventType, data: GameEventData[GameEventType], state: GameState, config: GameConfig): void {
+  handle(eventType: GameEventType, data: GameEventData[GameEventType], state: GameState): void {
     if (!this.canHandle(eventType) || !this.isEnabled()) {
       return;
     }
@@ -48,7 +47,7 @@ export class RunStateHandler extends BaseResponseHandler {
         }
 
         // 发送状态变更事件
-        this.eventCenter.emit(GameEventType.STATE_CHANGE, state);
+        this.eventService.emit(GameEventType.STATE_CHANGE, state);
       }
     }
   }

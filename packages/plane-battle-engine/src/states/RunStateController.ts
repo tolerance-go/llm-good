@@ -7,9 +7,9 @@ export class RunStateController {
   private config: GameConfig;
   private eventService: EventService;
 
-  constructor(config: GameConfig) {
+  constructor(config: GameConfig, eventService: EventService) {
     this.config = config;
-    this.eventService = EventService.getInstance();
+    this.eventService = eventService;
     this.initializeEventListeners();
   }
 

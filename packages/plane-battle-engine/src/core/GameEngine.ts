@@ -27,6 +27,7 @@ import { LogCollector } from '../utils/LogCollector';
 import { EventService } from './services/EventService';
 import { RenderService } from './services/RenderService';
 import { InputService } from './services/InputService';
+import { PixiService } from './services/PixiService';
 
 // 导入核心管理器
 import { ConfigManager } from './managers/ConfigManager';
@@ -48,32 +49,37 @@ export class GameEngine {
   private animationFrameId: number | null = null;
   private logger: LogCollector;
   private isInitialized: boolean = false;
+  private pixiService: PixiService;
 
   constructor(config: Partial<GameConfig>, container: HTMLElement) {
+    // 初始化日志收集器（保持单例）
     this.logger = LogCollector.getInstance();
     this.logger.addLog('GameEngine', '初始化游戏引擎');
+    
+    // 初始化事件服务
+    this.eventService = new EventService();
     
     // 初始化配置管理器
     this.configManager = new ConfigManager(config);
     const gameConfig = this.configManager.getConfig();
     
     // 初始化状态管理器
-    this.stateManager = StateManager.getInstance(gameConfig);
+    this.stateManager = new StateManager(gameConfig, this.eventService);
     
-    // 初始化事件服务
-    this.eventService = EventService.getInstance();
+    // 初始化PixiJS服务
+    this.pixiService = new PixiService();
     
     // 初始化渲染服务
-    this.renderService = RenderService.getInstance();
+    this.renderService = new RenderService(this.pixiService);
     
     // 初始化命令管理器
-    this.commandManager = CommandManager.getInstance(this.stateManager, gameConfig);
+    this.commandManager = new CommandManager(this.stateManager, gameConfig, this.eventService);
     
     // 初始化响应管理器
-    this.responseManager = ResponseManager.getInstance(gameConfig, this.stateManager);
+    this.responseManager = new ResponseManager(gameConfig, this.stateManager, this.eventService);
     
     // 初始化输入服务
-    this.inputService = InputService.getInstance();
+    this.inputService = new InputService(this.eventService);
 
     // 异步初始化渲染服务
     this.initializeAsync(gameConfig, container);
@@ -84,7 +90,7 @@ export class GameEngine {
       // 初始化渲染服务
       await this.renderService.initialize(gameConfig, container);
       
-      // 初始化渲染管理器（需要在渲染服务之后初始化）
+      // 初始化渲染管理器
       this.rendererManager = new RendererManager(this.renderService);
       
       this.isInitialized = true;

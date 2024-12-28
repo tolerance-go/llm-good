@@ -8,9 +8,9 @@ export class StartButtonStateController {
   private eventService: EventService;
   private logger: LogCollector;
 
-  constructor(config: GameConfig) {
+  constructor(config: GameConfig, eventService: EventService) {
     this.config = config;
-    this.eventService = EventService.getInstance();
+    this.eventService = eventService;
     this.logger = LogCollector.getInstance();
     this.logger.addLog('StartButtonStateController', '初始化开始按钮状态控制器');
   }
@@ -18,7 +18,7 @@ export class StartButtonStateController {
   /**
    * 获取开始按钮状态
    */
-  getButtonState(screen: 'menu' | 'game' | 'pause' | 'gameOver'): UIState['startButtonState'] {
+  getButtonState(screen: 'menu' | 'game' | 'pause' | 'gameOver'): NonNullable<UIState['startButtonState']> {
     this.logger.addLog('StartButtonStateController', `获取${screen}场景按钮状态`);
     
     return {
@@ -89,10 +89,12 @@ export class StartButtonStateController {
     this.logger.addLog('StartButtonStateController', `更新按钮状态: ${screen}`);
     const buttonState = this.getButtonState(screen);
     
-    this.logger.addLog('StartButtonStateController', '按钮状态详情:', {
-      visible: buttonState.visible,
-      text: buttonState.text,
-      position: buttonState.position
-    });
+    if (buttonState) {
+      this.logger.addLog('StartButtonStateController', '按钮状态详情:', {
+        visible: buttonState.visible,
+        text: buttonState.text,
+        position: buttonState.position
+      });
+    }
   }
 } 

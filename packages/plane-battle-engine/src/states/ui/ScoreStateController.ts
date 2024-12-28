@@ -1,11 +1,14 @@
 import { GameState } from '../../types/state';
 import { GameConfig } from '../../types/config';
+import { EventService } from '../../core/services/EventService';
 
 export class ScoreStateController {
   private config: GameConfig;
+  private eventService: EventService;
 
-  constructor(config: GameConfig) {
+  constructor(config: GameConfig, eventService: EventService) {
     this.config = config;
+    this.eventService = eventService;
   }
 
   update(state: GameState): void {

@@ -4,11 +4,11 @@ import { GameState } from '../types/state';
 import { EventService } from '../core/services/EventService';
 
 export class UIStateHandler extends BaseResponseHandler {
-  private eventCenter: EventService;
+  private eventService: EventService;
 
-  constructor() {
+  constructor(eventService: EventService) {
     super();
-    this.eventCenter = EventService.getInstance();
+    this.eventService = eventService;
   }
 
   getName(): string {
@@ -67,7 +67,7 @@ export class UIStateHandler extends BaseResponseHandler {
       };
 
       // 发送状态变更事件
-      this.eventCenter.emit(GameEventType.STATE_CHANGE, state);
+      this.eventService.emit(GameEventType.STATE_CHANGE, state);
     }
   }
 

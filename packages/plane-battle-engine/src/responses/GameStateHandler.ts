@@ -5,11 +5,11 @@ import { GameConfig } from '../types/config';
 import { EventService } from '../core/services/EventService';
 
 export class GameStateHandler extends BaseResponseHandler {
-  private eventCenter: EventService;
+  private eventService: EventService;
 
-  constructor() {
+  constructor(eventService: EventService) {
     super();
-    this.eventCenter = EventService.getInstance();
+    this.eventService = eventService;
   }
 
   getName(): string {

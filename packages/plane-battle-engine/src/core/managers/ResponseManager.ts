@@ -31,29 +31,30 @@ import {
 } from '../../responses';
 import { StateManager } from './StateManager';
 import { EventService } from '../services/EventService';
+import { CommandService } from '../services/CommandService';
 
 export class ResponseManager {
-  private static instance: ResponseManager;
   private handlers: Map<string, ResponseHandler> = new Map();
   private stateManager: StateManager;
   private config: GameConfig;
   private eventService: EventService;
 
-  private constructor(config: GameConfig, stateManager: StateManager) {
+  constructor(config: GameConfig, stateManager: StateManager, eventService: EventService) {
     this.config = config;
     this.stateManager = stateManager;
-    this.eventService = EventService.getInstance();
+    this.eventService = eventService;
     this.initializeHandlers();
     this.setupEventListeners();
   }
 
   private initializeHandlers(): void {
     // 注册所有响应处理器
+    const commandService = new CommandService(this.stateManager, this.eventService);
     const handlers = [
-      new KeyboardInputHandler(),
-      new CollisionHandler(),
-      new GameStateHandler(),
-      new RunStateHandler()
+      new KeyboardInputHandler(commandService),
+      new CollisionHandler(this.eventService),
+      new GameStateHandler(this.eventService),
+      new RunStateHandler(this.eventService)
     ];
 
     handlers.forEach(handler => {
@@ -67,13 +68,6 @@ export class ResponseManager {
         this.handleResponse(eventType, data);
       });
     });
-  }
-
-  public static getInstance(config: GameConfig, stateManager: StateManager): ResponseManager {
-    if (!ResponseManager.instance) {
-      ResponseManager.instance = new ResponseManager(config, stateManager);
-    }
-    return ResponseManager.instance;
   }
 
   public registerHandler(handler: ResponseHandler): void {

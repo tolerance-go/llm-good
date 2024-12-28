@@ -7,6 +7,7 @@ import { PauseCommand } from '../../commands/PauseCommand';
 import { ResumeCommand } from '../../commands/ResumeCommand';
 import { ResetCommand } from '../../commands/ResetCommand';
 import { GameConfig } from '../../types/config';
+import { EventService } from '../services/EventService';
 
 /**
  * @class CommandManager
@@ -18,23 +19,15 @@ import { GameConfig } from '../../types/config';
  * - 提供命令管理的接口
  */
 export class CommandManager {
-  private static instance: CommandManager;
   private commandService: CommandService;
   private config: GameConfig;
 
-  private constructor(stateManager: StateManager, config: GameConfig) {
-    this.commandService = CommandService.getInstance(stateManager);
+  constructor(stateManager: StateManager, config: GameConfig, eventService: EventService) {
+    this.commandService = new CommandService(stateManager, eventService);
     this.config = config;
 
     // 在构造函数中初始化所有命令
     this.initializeCommands();
-  }
-
-  public static getInstance(stateManager?: StateManager, config?: GameConfig): CommandManager {
-    if (!CommandManager.instance && stateManager && config) {
-      CommandManager.instance = new CommandManager(stateManager, config);
-    }
-    return CommandManager.instance;
   }
 
   /**

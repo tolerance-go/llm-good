@@ -5,14 +5,17 @@ import { BaseUIRenderer } from '../../abstract/BaseUIRenderer';
 import { ScoreRenderer } from './ScoreRenderer';
 import { StartButtonRenderer } from './StartButtonRenderer';
 import { LogCollector } from '../../utils/LogCollector';
+import { EventService } from '../../core/services/EventService';
 
 export class UIRenderer extends BaseUIRenderer {
   private renderers: BaseUIRenderer[] = [];
   private logger: LogCollector;
+  private eventService: EventService;
 
-  constructor() {
+  constructor(eventService: EventService) {
     super();
     this.logger = LogCollector.getInstance();
+    this.eventService = eventService;
     this.initializeRenderers();
   }
 
@@ -20,7 +23,7 @@ export class UIRenderer extends BaseUIRenderer {
     // 初始化所有UI子渲染器
     this.renderers = [
       new ScoreRenderer(),
-      new StartButtonRenderer()
+      new StartButtonRenderer(this.eventService)
     ];
   }
 

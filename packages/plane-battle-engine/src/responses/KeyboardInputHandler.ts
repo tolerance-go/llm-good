@@ -8,12 +8,12 @@ import { CommandTypeEnum } from '../types/command-types';
 
 export class KeyboardInputHandler extends BaseResponseHandler {
   private logger: LogCollector;
-  private commandCenter: CommandService;
+  private commandService: CommandService;
 
-  constructor() {
+  constructor(commandService: CommandService) {
     super();
     this.logger = LogCollector.getInstance();
-    this.commandCenter = CommandService.getInstance();
+    this.commandService = commandService;
   }
 
   getName(): string {
@@ -61,7 +61,7 @@ export class KeyboardInputHandler extends BaseResponseHandler {
         });
 
         // 执行移动命令
-        this.commandCenter.executeCommand(CommandTypeEnum.MOVE, {
+        this.commandService.executeCommand(CommandTypeEnum.MOVE, {
           direction,
           deltaTime: 1/60 // 假设 60fps
         });

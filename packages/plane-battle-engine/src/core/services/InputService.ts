@@ -26,7 +26,6 @@ import { EventService } from './EventService';
 import { GameEventType } from '../../types/events';
 
 export class InputService {
-  private static instance: InputService;
   private logger: LogCollector;
   private eventCenter: EventService;
   private enabled: boolean = true;
@@ -44,17 +43,10 @@ export class InputService {
     space: false
   };
 
-  private constructor() {
+  constructor(eventService: EventService) {
     this.logger = LogCollector.getInstance();
-    this.eventCenter = EventService.getInstance();
+    this.eventCenter = eventService;
     this.setupEventListeners();
-  }
-
-  public static getInstance(): InputService {
-    if (!InputService.instance) {
-      InputService.instance = new InputService();
-    }
-    return InputService.instance;
   }
 
   private setupEventListeners(): void {

@@ -1,12 +1,15 @@
-import { GameState } from '../types/state';
 import { GameConfig } from '../types/config';
 import { Vector2D } from '../types/base';
+import { EventService } from '../core/services/EventService';
+import { GameState } from '../types/state';
 
 export class PlayerStateController {
   private config: GameConfig;
+  private eventService: EventService;
 
-  constructor(config: GameConfig) {
+  constructor(config: GameConfig, eventService: EventService) {
     this.config = config;
+    this.eventService = eventService;
   }
 
   // 移动玩家

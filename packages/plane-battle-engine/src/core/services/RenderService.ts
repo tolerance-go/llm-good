@@ -25,7 +25,6 @@ import { Application } from 'pixi.js';
 import { PixiService } from './PixiService';
 
 export class RenderService implements GameRenderer {
-  private static instance: RenderService | null = null;
   private gameState: GameState | null = null;
   private config: GameConfig | null = null;
   private logger: LogCollector;
@@ -39,17 +38,10 @@ export class RenderService implements GameRenderer {
   private logUpdateInterval: number = 1000;
   private pixiService: PixiService;
 
-  private constructor() {
+  constructor(pixiService: PixiService) {
     this.logger = LogCollector.getInstance();
     this.logger.addLog('RenderService', '初始化渲染服务');
-    this.pixiService = PixiService.getInstance();
-  }
-
-  public static getInstance(): RenderService {
-    if (!RenderService.instance) {
-      RenderService.instance = new RenderService();
-    }
-    return RenderService.instance;
+    this.pixiService = pixiService;
   }
 
   async initialize(config: GameConfig, container: HTMLElement): Promise<void> {

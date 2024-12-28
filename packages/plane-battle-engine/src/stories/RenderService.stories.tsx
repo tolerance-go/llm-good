@@ -6,6 +6,8 @@ import { GameRenderer } from '../types/renderers';
 import { GameState } from '../types/state';
 import { GameConfig } from '../types/config';
 import { LogCollector } from '../utils/LogCollector';
+import { PixiService } from '../core/services/PixiService';
+import { EventService } from '../core/services/EventService';
 
 // 创建一个按钮渲染器
 class StartButtonRenderer implements GameRenderer {
@@ -15,7 +17,7 @@ class StartButtonRenderer implements GameRenderer {
   private background: PIXI.Graphics;
   private logger: LogCollector;
 
-  constructor() {
+  constructor(private eventService: EventService) {
     this.logger = LogCollector.getInstance();
     this.logger.addLog('StartButtonRenderer', '创建按钮渲染器');
 
@@ -254,102 +256,88 @@ const RenderServiceDemo: React.FC = () => {
         logger.addLog('RenderServiceDemo', '开始初始化游戏');
 
         // 创建渲染服务实例
-        const renderService = RenderService.getInstance();
+        const renderService = new RenderService(new PixiService());
         renderServiceRef.current = renderService;
 
-        // 等待渲染服务初始化完成
+        // 初始化渲染服务
         await renderService.initialize(config, container);
-        logger.addLog('RenderServiceDemo', '渲染服务初始化完成');
 
-        // 创建按钮渲染器
-        const buttonRenderer = new StartButtonRenderer();
-        
-        // 先初始化按钮渲染器
+        // 创建并添加按钮渲染器
+        const eventService = new EventService();
+        const buttonRenderer = new StartButtonRenderer(eventService);
         await buttonRenderer.initialize(config, renderService.getApp()!.canvas);
-        
-        // 获取 PixiService 实例
-        const pixiApp = renderService.getApp();
-        if (!pixiApp) {
-          throw new Error('PixiJS application not initialized');
-        }
-
-        // 将按钮容器添加到舞台
-        pixiApp.stage.addChild(buttonRenderer.getContainer());
-        
-        // 注册渲染器
         renderService.registerRenderer(buttonRenderer);
-        logger.addLog('RenderServiceDemo', '按钮渲染器注册完成');
+
+        // 设置初始游戏状态
+        const initialState: GameState = {
+          status: 'init',
+          currentLevel: 1,
+          currentWave: 1,
+          score: 0,
+          time: 0,
+          isPaused: false,
+          isGameOver: false,
+          performance: {
+            fps: 0,
+            frameTime: 0,
+            updateTime: 0,
+            renderTime: 0
+          },
+          player: {
+            id: 'player',
+            health: config.player.initialHealth,
+            lives: config.player.lives,
+            position: config.player.respawnPosition,
+            velocity: { x: 0, y: 0 },
+            rotation: 0,
+            scale: { x: 1, y: 1 },
+            size: config.player.size,
+            speed: config.player.speed,
+            score: 0,
+            fireRate: config.player.fireRate,
+            lastFireTime: 0,
+            powerups: [],
+            invincible: false,
+            respawning: false,
+            active: true,
+            combo: {
+              count: 0,
+              timer: 0,
+              multiplier: 1
+            },
+            weapons: {
+              bulletSpeed: config.weapons.bulletSpeed,
+              bulletDamage: config.weapons.bulletDamage
+            }
+          },
+          enemies: [],
+          bullets: [],
+          powerups: [],
+          input: {
+            type: 'move',
+            data: {
+              x: 0,
+              y: 0,
+              pressed: false
+            }
+          },
+          ui: {
+            currentScreen: 'menu',
+            elements: {
+              mainMenu: true,
+              startButton: true,
+              optionsButton: true,
+              scoreDisplay: false,
+              pauseMenu: false,
+              gameOverScreen: false
+            }
+          }
+        };
 
         // 开始渲染循环
         const gameLoop = () => {
           if (renderService) {
-            renderService.render({
-              status: 'menu',
-              currentLevel: 1,
-              currentWave: 1,
-              score: 0,
-              time: Date.now(),
-              isPaused: false,
-              isGameOver: false,
-              player: {
-                id: 'player1',
-                position: { x: 0, y: 0 },
-                velocity: { x: 0, y: 0 },
-                rotation: 0,
-                scale: { x: 1, y: 1 },
-                health: 100,
-                lives: 3,
-                size: { width: 32, height: 32 },
-                speed: 5,
-                score: 0,
-                fireRate: 0.5,
-                lastFireTime: 0,
-                powerups: [],
-                invincible: false,
-                respawning: false,
-                active: true,
-                combo: {
-                  count: 0,
-                  timer: 0,
-                  multiplier: 1
-                },
-                weapons: {
-                  bulletSpeed: 10,
-                  bulletDamage: 10
-                }
-              },
-              enemies: [],
-              bullets: [],
-              powerups: [],
-              input: {
-                type: 'move',
-                data: { x: 0, y: 0 },
-                keyboard: {
-                  up: false,
-                  down: false,
-                  left: false,
-                  right: false,
-                  space: false
-                }
-              },
-              performance: {
-                fps: 60,
-                frameTime: 16.67,
-                updateTime: 1,
-                renderTime: 1
-              },
-              ui: {
-                currentScreen: 'menu',
-                elements: {
-                  mainMenu: true,
-                  startButton: true,
-                  optionsButton: false,
-                  scoreDisplay: false,
-                  pauseMenu: false,
-                  gameOverScreen: false
-                }
-              }
-            });
+            renderService.render(initialState);
           }
           animationFrameId = requestAnimationFrame(gameLoop);
         };

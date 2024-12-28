@@ -7,9 +7,9 @@ export class GameStateController {
   private config: GameConfig;
   private eventService: EventService;
 
-  constructor(config: GameConfig) {
+  constructor(config: GameConfig, eventService: EventService) {
     this.config = config;
-    this.eventService = EventService.getInstance();
+    this.eventService = eventService;
   }
 
   // 重置游戏状态

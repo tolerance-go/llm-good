@@ -5,11 +5,11 @@ import { GameConfig } from '../types/config';
 import { EventService } from '../core/services/EventService';
 
 export class CollisionHandler extends BaseResponseHandler {
-  private eventCenter: EventService;
+  private eventService: EventService;
 
-  constructor() {
+  constructor(eventService: EventService) {
     super();
-    this.eventCenter = EventService.getInstance();
+    this.eventService = eventService;
   }
 
   getName(): string {
@@ -59,7 +59,7 @@ export class CollisionHandler extends BaseResponseHandler {
       state.player.lives--;
       if (state.player.lives <= 0) {
         state.status = 'gameOver';
-        this.eventCenter.emit(GameEventType.GAME_OVER, {
+        this.eventService.emit(GameEventType.GAME_OVER, {
           score: state.score,
           reason: 'Player died'
         });
@@ -99,7 +99,7 @@ export class CollisionHandler extends BaseResponseHandler {
       state.enemies = state.enemies.filter(e => e.id !== enemyId);
       state.score += enemy.scoreValue;
       
-      this.eventCenter.emit(GameEventType.ENEMY_DEAD, {
+      this.eventService.emit(GameEventType.ENEMY_DEAD, {
         id: enemy.id,
         score: enemy.scoreValue
       });
@@ -123,7 +123,7 @@ export class CollisionHandler extends BaseResponseHandler {
       state.player.lives--;
       if (state.player.lives <= 0) {
         state.status = 'gameOver';
-        this.eventCenter.emit(GameEventType.GAME_OVER, {
+        this.eventService.emit(GameEventType.GAME_OVER, {
           score: state.score,
           reason: 'Player died'
         });

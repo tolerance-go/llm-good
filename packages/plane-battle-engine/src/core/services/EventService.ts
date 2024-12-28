@@ -25,19 +25,11 @@
 import { GameEventHandler, GameEventType, GameEventData } from '../../types/events';
 
 export class EventService {
-  private static instance: EventService;
   private listeners: Map<GameEventType, Set<GameEventHandler<GameEventData[GameEventType]>>>;
   private debugMode = false;
 
-  private constructor() {
+  constructor() {
     this.listeners = new Map();
-  }
-
-  public static getInstance(): EventService {
-    if (!EventService.instance) {
-      EventService.instance = new EventService();
-    }
-    return EventService.instance;
   }
 
   public setDebug(enabled: boolean): void {
