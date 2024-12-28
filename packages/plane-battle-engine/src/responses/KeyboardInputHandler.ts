@@ -27,7 +27,7 @@ export class KeyboardInputHandler extends BaseResponseHandler {
     return 1;
   }
 
-  handle(eventType: GameEventType, data: GameEventData[GameEventType], state: GameState): void {
+  handle(eventType: GameEventType, data: GameEventData[GameEventType], currentState: Readonly<GameState>): void {
     if (!this.canHandle(eventType) || !this.isEnabled()) {
       return;
     }
@@ -42,14 +42,8 @@ export class KeyboardInputHandler extends BaseResponseHandler {
       type: inputData.type,
       data: inputData.data,
       keyboard: inputData.keyboard,
-      previousState: state.input.keyboard
+      previousState: currentState.input.keyboard
     });
-
-    // 更新游戏状态中的键盘输入
-    state.input = {
-      ...state.input,
-      keyboard: inputData.keyboard
-    };
 
     // 处理移动指令
     if (inputData.type === 'move' && inputData.data) {
@@ -61,8 +55,8 @@ export class KeyboardInputHandler extends BaseResponseHandler {
       if (direction.x !== 0 || direction.y !== 0) {
         this.logger.addLog('Movement', `执行移动指令 - 方向: (${direction.x}, ${direction.y})`, {
           direction,
-          currentPosition: state.player.position,
-          speed: state.player.speed
+          currentPosition: currentState.player.position,
+          speed: currentState.player.speed
         });
 
         // 执行移动命令
@@ -72,8 +66,8 @@ export class KeyboardInputHandler extends BaseResponseHandler {
         });
 
         // 记录移动后的位置
-        this.logger.addLog('Movement', `移动后位置: (${state.player.position.x}, ${state.player.position.y})`, {
-          newPosition: state.player.position
+        this.logger.addLog('Movement', `移动后位置: (${currentState.player.position.x}, ${currentState.player.position.y})`, {
+          newPosition: currentState.player.position
         });
       }
     }
