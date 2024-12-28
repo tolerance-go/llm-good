@@ -8,9 +8,9 @@ export class ResumeCommand implements GameCommand {
   private config: GameConfig;
   private eventService: EventService;
 
-  constructor(config: GameConfig) {
+  constructor(config: GameConfig, eventService: EventService) {
     this.config = config;
-    this.eventService = new EventService();
+    this.eventService = eventService;
   }
 
   getName(): CommandType {

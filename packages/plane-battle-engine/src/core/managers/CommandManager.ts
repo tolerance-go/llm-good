@@ -21,10 +21,12 @@ import { EventService } from '../services/EventService';
 export class CommandManager {
   private commandService: CommandService;
   private config: GameConfig;
+  private eventService: EventService;
 
   constructor(stateManager: StateManager, config: GameConfig, eventService: EventService) {
     this.commandService = new CommandService(stateManager, eventService);
     this.config = config;
+    this.eventService = eventService;
 
     // 在构造函数中初始化所有命令
     this.initializeCommands();
@@ -43,15 +45,15 @@ export class CommandManager {
     this.commandService.registerCommand(shootCommand);
 
     // 注册暂停命令
-    const pauseCommand = new PauseCommand(this.config);
+    const pauseCommand = new PauseCommand(this.config, this.eventService);
     this.commandService.registerCommand(pauseCommand);
 
     // 注册恢复命令
-    const resumeCommand = new ResumeCommand(this.config);
+    const resumeCommand = new ResumeCommand(this.config, this.eventService);
     this.commandService.registerCommand(resumeCommand);
 
     // 注册重置命令
-    const resetCommand = new ResetCommand(this.config);
+    const resetCommand = new ResetCommand(this.config, this.eventService);
     this.commandService.registerCommand(resetCommand);
   }
 
