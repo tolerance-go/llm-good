@@ -1,7 +1,7 @@
 import { GameState } from '../types/state';
 import { GameConfig } from '../types/config';
 
-export class PlayerStateManager {
+export class PlayerStateController {
   private config: GameConfig;
 
   constructor(config: GameConfig) {

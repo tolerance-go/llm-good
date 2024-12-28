@@ -33,27 +33,27 @@ import { GameState, GameStatus } from '../../types/state';
 import { GameConfig } from '../../types/config';
 import { EventService } from '../services/EventService';
 import { GameEventType } from '../../types/events';
-import { GameStateManager } from '../../states/GameStateManager';
-import { PlayerStateManager } from '../../states/PlayerStateManager';
-import { EnemyStateManager } from '../../states/EnemyStateManager';
-import { BulletStateManager } from '../../states/BulletStateManager';
+import { GameStateController } from '../../states/GameStateController';
+import { PlayerStateController } from '../../states/PlayerStateController';
+import { EnemyStateController } from '../../states/EnemyStateController';
+import { BulletStateControllerr } from '../../states/BulletStateControllerr';
 
 export class StateManager {
   private state: GameState;
   private config: GameConfig;
   private eventCenter: EventService;
-  private gameStateManager: GameStateManager;
-  private playerStateManager: PlayerStateManager;
-  private enemyStateManager: EnemyStateManager;
-  private bulletStateManager: BulletStateManager;
+  private gameStateManager: GameStateController;
+  private playerStateManager: PlayerStateController;
+  private enemyStateManager: EnemyStateController;
+  private bulletStateManager: BulletStateControllerr;
 
   constructor(config: GameConfig) {
     this.config = config;
     this.eventCenter = EventService.getInstance();
-    this.gameStateManager = new GameStateManager(config);
-    this.playerStateManager = new PlayerStateManager(config);
-    this.enemyStateManager = new EnemyStateManager(config);
-    this.bulletStateManager = new BulletStateManager(config);
+    this.gameStateManager = new GameStateController(config);
+    this.playerStateManager = new PlayerStateController(config);
+    this.enemyStateManager = new EnemyStateController(config);
+    this.bulletStateManager = new BulletStateControllerr(config);
     this.state = this.initializeState();
   }
 
