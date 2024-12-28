@@ -50,7 +50,7 @@ export class CommandService {
     const command = this.commands.get(commandType);
     if (command) {
       try {
-        const result = await command.execute(this.stateManager, params);
+        const result = await command.execute(params);
         return result as CommandReturnMap[T];
       } catch (error) {
         console.error(`Error executing command ${commandType}:`, error);

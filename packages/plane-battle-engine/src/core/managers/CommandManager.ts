@@ -22,11 +22,13 @@ export class CommandManager {
   private commandService: CommandService;
   private config: GameConfig;
   private eventService: EventService;
+  private stateManager: StateManager;
 
   constructor(stateManager: StateManager, config: GameConfig, eventService: EventService) {
     this.commandService = new CommandService(stateManager, eventService);
     this.config = config;
     this.eventService = eventService;
+    this.stateManager = stateManager;
 
     // 在构造函数中初始化所有命令
     this.initializeCommands();
@@ -37,23 +39,23 @@ export class CommandManager {
    */
   private initializeCommands(): void {
     // 注册移动命令
-    const moveCommand = new MoveCommand(this.config);
+    const moveCommand = new MoveCommand(this.config, this.stateManager);
     this.commandService.registerCommand(moveCommand);
 
     // 注册射击命令
-    const shootCommand = new ShootCommand(this.config);
+    const shootCommand = new ShootCommand(this.config, this.stateManager);
     this.commandService.registerCommand(shootCommand);
 
     // 注册暂停命令
-    const pauseCommand = new PauseCommand(this.config, this.eventService);
+    const pauseCommand = new PauseCommand(this.config, this.eventService, this.stateManager);
     this.commandService.registerCommand(pauseCommand);
 
     // 注册恢复命令
-    const resumeCommand = new ResumeCommand(this.config, this.eventService);
+    const resumeCommand = new ResumeCommand(this.config, this.eventService, this.stateManager);
     this.commandService.registerCommand(resumeCommand);
 
     // 注册重置命令
-    const resetCommand = new ResetCommand(this.config, this.eventService);
+    const resetCommand = new ResetCommand(this.config, this.eventService, this.stateManager);
     this.commandService.registerCommand(resetCommand);
   }
 

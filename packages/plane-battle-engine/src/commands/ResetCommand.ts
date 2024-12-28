@@ -7,19 +7,21 @@ import { EventService } from '../core/services/EventService';
 export class ResetCommand implements GameCommand {
   private config: GameConfig;
   private eventService: EventService;
+  private stateManager: StateManager;
 
-  constructor(config: GameConfig, eventService: EventService) {
+  constructor(config: GameConfig, eventService: EventService, stateManager: StateManager) {
     this.config = config;
     this.eventService = eventService;
+    this.stateManager = stateManager;
   }
 
   getName(): CommandType {
     return CommandTypeEnum.RESET;
   }
 
-  async execute(stateManager: StateManager): Promise<CommandReturnMap[CommandTypeEnum.RESET]> {
-    const state = stateManager.getState();
-    const gameStateController = stateManager.getController<GameStateController>(GameStateController);
+  async execute(): Promise<CommandReturnMap[CommandTypeEnum.RESET]> {
+    const state = this.stateManager.getState();
+    const gameStateController = this.stateManager.getController<GameStateController>(GameStateController);
 
     if (gameStateController) {
       gameStateController.reset(state);

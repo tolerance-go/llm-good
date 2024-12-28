@@ -7,23 +7,25 @@ import { PlayerStateController } from '../states/PlayerStateController';
 export class ShootCommand implements GameCommand {
   private config: GameConfig;
   private logger: LogCollector;
+  private stateManager: StateManager;
 
-  constructor(config: GameConfig) {
+  constructor(config: GameConfig, stateManager: StateManager) {
     this.config = config;
     this.logger = LogCollector.getInstance();
+    this.stateManager = stateManager;
   }
 
   getName(): CommandType {
     return CommandTypeEnum.SHOOT;
   }
 
-  execute(stateManager: StateManager, params: { position: { x: number; y: number } }) {
-    if (!stateManager || !params) {
-      throw new Error('StateManager or params not set');
+  execute(params: { position: { x: number; y: number } }) {
+    if (!params) {
+      throw new Error('Params not set');
     }
 
     const { position } = params;
-    const state = stateManager.getState();
+    const state = this.stateManager.getState();
     
     // 记录射击日志
     this.logger.addLog('ShootCommand', `Player shooting command executed - Position: (${position.x}, ${position.y})`, {
@@ -31,7 +33,7 @@ export class ShootCommand implements GameCommand {
     });
 
     // 通过 StateManager 获取 PlayerStateController 来处理射击
-    const playerController = stateManager.getController(PlayerStateController);
+    const playerController = this.stateManager.getController(PlayerStateController);
     if (playerController) {
       playerController.shoot(state, position);
     }

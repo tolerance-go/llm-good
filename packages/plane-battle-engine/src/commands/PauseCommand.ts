@@ -7,19 +7,21 @@ import { EventService } from '../core/services/EventService';
 export class PauseCommand implements GameCommand {
   private config: GameConfig;
   private eventService: EventService;
+  private stateManager: StateManager;
 
-  constructor(config: GameConfig, eventService: EventService) {
+  constructor(config: GameConfig, eventService: EventService, stateManager: StateManager) {
     this.config = config;
     this.eventService = eventService;
+    this.stateManager = stateManager;
   }
 
   getName(): CommandType {
     return CommandTypeEnum.PAUSE;
   }
 
-  async execute(stateManager: StateManager): Promise<CommandReturnMap[CommandTypeEnum.PAUSE]> {
-    const state = stateManager.getState();
-    const runStateController = stateManager.getController<RunStateController>(RunStateController);
+  async execute(): Promise<CommandReturnMap[CommandTypeEnum.PAUSE]> {
+    const state = this.stateManager.getState();
+    const runStateController = this.stateManager.getController<RunStateController>(RunStateController);
 
     if (runStateController) {
       const previousStatus = state.status;

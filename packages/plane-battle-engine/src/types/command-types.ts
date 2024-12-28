@@ -63,7 +63,6 @@ export type CommandReturn = {
 export interface GameCommand {
   getName(): CommandType;
   execute(
-    stateManager: StateManager,
     params?: CommandParams
   ): void | CommandReturn | Promise<void | CommandReturn>;
 }
