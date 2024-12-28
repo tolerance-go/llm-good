@@ -16,7 +16,10 @@
     "test:run": "vitest run",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "lint": "eslint ."
+    "preview-storybook": "http-server ./storybook-static -p 6601",
+    "lint": "eslint .",
+    "percy": "percy storybook ./storybook-static",
+    "test:visual": "pnpm build-storybook && pnpm percy"
   },
   "dependencies": {
     "pixi.js": "^8.6.6",
@@ -25,6 +28,8 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
+    "@percy/cli": "^1.30.5",
+    "@percy/storybook": "^6.0.3",
     "@storybook/addon-essentials": "^8.4.7",
     "@storybook/addon-interactions": "^8.4.7",
     "@storybook/addon-links": "^8.4.7",
@@ -39,6 +44,7 @@
     "eslint": "^9.17.0",
     "eslint-plugin-react": "^7.37.3",
     "globals": "^15.13.0",
+    "http-server": "^14.1.1",
     "storybook": "^8.4.7",
     "typescript": "^5.3.0",
     "typescript-eslint": "^8.18.1",

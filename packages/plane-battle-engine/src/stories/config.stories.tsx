@@ -21,7 +21,7 @@ export const 核心玩法: Story = {
       canvas: {
         width: 600,
         height: 400,
-        backgroundColor: "#1a1a1a",
+        backgroundColor: 0x1a1a1a,
       },
     },
   },

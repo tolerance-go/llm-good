@@ -129,6 +129,12 @@ export class RenderService implements GameRenderer {
   getApp(): Application | null {
     return this.pixiService.getApp();
   }
+  /**
+   * 检查视觉测试是否就绪
+   */
+  isVisualTestReady(): boolean {
+    return this.pixiService.getApp()?.canvas.hasAttribute('data-visual-test-ready') ?? false;
+  }
 
   destroy(): void {
     this.renderers.forEach(renderer => renderer.destroy());

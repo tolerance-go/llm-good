@@ -28,7 +28,7 @@ export class PixiService {
     await this.app.init({
       width: config.canvas.width,
       height: config.canvas.height,
-      backgroundColor: 0x000000,
+      backgroundColor: config.canvas.backgroundColor,
       antialias: true,
       resolution: window.devicePixelRatio || 1,
       autoDensity: true,
@@ -103,7 +103,7 @@ export class PixiService {
   }
 
   /**
-   * 从主容器移除显示对象
+   * 从容器移除显示对象
    */
   removeFromStage(displayObject: PIXI.Container | PIXI.Sprite | PIXI.Graphics): void {
     if (this.mainContainer) {

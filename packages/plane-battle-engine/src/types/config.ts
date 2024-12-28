@@ -8,7 +8,7 @@ export interface SizeConfig {
 export interface CanvasConfig {
   width: number;
   height: number;
-  backgroundColor?: string;
+  backgroundColor?: number;
 }
 
 // 玩家配置
@@ -177,7 +177,7 @@ export const DEFAULT_CONFIG: GameConfig = {
   canvas: {
     width: 800,
     height: 600,
-    backgroundColor: '#000000'
+    backgroundColor: 0x000000
   },
   player: {
     initialHealth: 100,
