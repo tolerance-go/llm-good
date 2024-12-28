@@ -105,8 +105,8 @@ export class LogCollector {
     window.addEventListener(
       "keydown",
       (e: KeyboardEvent) => {
-        // Ctrl + Alt + L: 下载日志
-        if (e.ctrlKey && e.altKey && (e.key === "l" || e.key === "L")) {
+        // Ctrl + Alt + D: 下载日志
+        if (e.ctrlKey && e.altKey && (e.key === "d" || e.key === "D")) {
           e.preventDefault();
           e.stopPropagation();
           this.downloadLogs();
