@@ -1,0 +1,73 @@
+{
+  "id": "plane_battle_engine_visual_test",
+  "viewports": [
+    {
+      "label": "phone",
+      "width": 375,
+      "height": 800
+    },
+    {
+      "label": "tablet",
+      "width": 768,
+      "height": 1024
+    },
+    {
+      "label": "desktop",
+      "width": 1280,
+      "height": 800
+    }
+  ],
+  "scenarios": [
+    {
+      "label": "RenderService - 开始游戏按钮示例",
+      "url": "http://localhost:6006/iframe.html?args=&id=渲染系统-renderservice--basic&viewMode=story",
+      "delay": 2000,
+      "misMatchThreshold": 0.1,
+      "requireSameDimensions": true
+    },
+    {
+      "label": "PixiService - 基础用法",
+      "url": "http://localhost:6006/iframe.html?args=&id=核心服务-pixiservice--基础用法&viewMode=story",
+      "delay": 2000,
+      "misMatchThreshold": 0.1,
+      "requireSameDimensions": true
+    },
+    {
+      "label": "PixiService - 自定义尺寸",
+      "url": "http://localhost:6006/iframe.html?args=&id=核心服务-pixiservice--自定义尺寸&viewMode=story",
+      "delay": 2000,
+      "misMatchThreshold": 0.1,
+      "requireSameDimensions": true
+    },
+    {
+      "label": "PixiService - 自定义背景色",
+      "url": "http://localhost:6006/iframe.html?args=&id=核心服务-pixiservice--自定义背景色&viewMode=story",
+      "delay": 2000,
+      "misMatchThreshold": 0.1,
+      "requireSameDimensions": true
+    },
+    {
+      "label": "配置示例 - 核心玩法",
+      "url": "http://localhost:6006/iframe.html?args=&id=配置示例-基础配置--核心玩法&viewMode=story",
+      "delay": 2000,
+      "misMatchThreshold": 0.1,
+      "requireSameDimensions": true
+    }
+  ],
+  "paths": {
+    "bitmaps_reference": "backstop_data/bitmaps_reference",
+    "bitmaps_test": "backstop_data/bitmaps_test",
+    "engine_scripts": "backstop_data/engine_scripts",
+    "html_report": "backstop_data/html_report",
+    "ci_report": "backstop_data/ci_report"
+  },
+  "report": ["browser"],
+  "engine": "puppeteer",
+  "engineOptions": {
+    "args": ["--no-sandbox"]
+  },
+  "asyncCaptureLimit": 5,
+  "asyncCompareLimit": 50,
+  "debug": false,
+  "debugWindow": false
+}

@@ -12,6 +12,9 @@ dist/
 build/
 out/
 .output/
+storybook-static/
+
+backstop_data/
 
 # 日志文件
 logs/
