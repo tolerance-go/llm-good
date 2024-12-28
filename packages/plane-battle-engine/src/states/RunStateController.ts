@@ -92,6 +92,26 @@ export class RunStateController {
     });
   }
 
+  // 暂停游戏
+  pause(state: GameState): void {
+    if (state.status === 'playing') {
+      state.status = 'paused';
+      state.isPaused = true;
+      state.previousStatus = 'playing';
+      this.handleGamePause();
+    }
+  }
+
+  // 恢复游戏
+  resume(state: GameState): void {
+    if (state.status === 'paused') {
+      state.status = state.previousStatus || 'playing';
+      state.isPaused = false;
+      state.previousStatus = undefined;
+      this.handleGameResume();
+    }
+  }
+
   update(state: GameState): void {
     // 在这里可以添加一些运行状态的自动更新逻辑
     // 比如检查某些条件自动触发状态改变

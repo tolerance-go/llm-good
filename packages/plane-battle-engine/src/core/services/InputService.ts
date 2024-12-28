@@ -65,7 +65,7 @@ export class InputService {
   private handleKeyDown(event: KeyboardEvent): void {
     if (!this.enabled) return;
 
-    this.logger.addLog('Input', `键盘按下: ${event.code}`, { code: event.code });
+    this.logger.addLog('InputService', `键盘按下: ${event.code}`, { code: event.code });
 
     switch (event.code) {
       case 'ArrowLeft':
@@ -101,7 +101,7 @@ export class InputService {
   private handleKeyUp(event: KeyboardEvent): void {
     if (!this.enabled) return;
 
-    this.logger.addLog('Input', `键盘释放: ${event.code}`, { code: event.code });
+    this.logger.addLog('InputService', `键盘释放: ${event.code}`, { code: event.code });
 
     switch (event.code) {
       case 'ArrowLeft':

@@ -26,6 +26,37 @@ export class PlayerStateController {
     player.position.y = Math.max(minY, Math.min(maxY, newY));
   }
 
+  // 玩家射击
+  shoot(state: GameState, position: Vector2D): void {
+    const { player } = state;
+    
+    // 检查射击冷却
+    if (player.lastFireTime > 0) {
+      return;
+    }
+
+    // 创建新的子弹
+    const bulletId = `bullet_${Date.now()}`;
+    const bullet = {
+      id: bulletId,
+      position: { ...position },
+      size: { width: this.config.weapons.bulletSize.width, height: this.config.weapons.bulletSize.height },
+      speed: this.config.weapons.bulletSpeed,
+      damage: this.config.weapons.bulletDamage,
+      isPlayerBullet: true,
+      velocity: { x: 0, y: -1 }, // 向上射击
+      active: true,
+      rotation: 0,
+      scale: { x: 1, y: 1 }
+    };
+
+    // 添加子弹到游戏状态
+    state.bullets.push(bullet);
+
+    // 设置射击冷却
+    player.lastFireTime = 1000 / player.fireRate;
+  }
+
   update(state: GameState): void {
     const { player } = state;
 

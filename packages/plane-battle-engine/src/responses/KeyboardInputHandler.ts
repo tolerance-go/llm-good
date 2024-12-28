@@ -4,6 +4,7 @@ import { GameState } from '../types/state';
 import { PlayerInput } from '../types/renderers';
 import { LogCollector } from '../utils/LogCollector';
 import { CommandService } from '../core/services/CommandService';
+import { CommandTypeEnum } from '../types/command-types';
 
 export class KeyboardInputHandler extends BaseResponseHandler {
   private logger: LogCollector;
@@ -38,7 +39,7 @@ export class KeyboardInputHandler extends BaseResponseHandler {
     }
 
     // 记录键盘输入状态变化
-    this.logger.addLog('KeyboardInput', '键盘输入状态变化', {
+    this.logger.addLog('KeyboardInputHandler', '键盘输入状态变化', {
       type: inputData.type,
       data: inputData.data,
       keyboard: inputData.keyboard,
@@ -53,20 +54,20 @@ export class KeyboardInputHandler extends BaseResponseHandler {
       };
 
       if (direction.x !== 0 || direction.y !== 0) {
-        this.logger.addLog('Movement', `执行移动指令 - 方向: (${direction.x}, ${direction.y})`, {
+        this.logger.addLog('KeyboardInputHandler', `执行移动指令 - 方向: (${direction.x}, ${direction.y})`, {
           direction,
           currentPosition: currentState.player.position,
           speed: currentState.player.speed
         });
 
         // 执行移动命令
-        this.commandCenter.executeCommand('move', {
+        this.commandCenter.executeCommand(CommandTypeEnum.MOVE, {
           direction,
           deltaTime: 1/60 // 假设 60fps
         });
 
         // 记录移动后的位置
-        this.logger.addLog('Movement', `移动后位置: (${currentState.player.position.x}, ${currentState.player.position.y})`, {
+        this.logger.addLog('KeyboardInputHandler', `移动后位置: (${currentState.player.position.x}, ${currentState.player.position.y})`, {
           newPosition: currentState.player.position
         });
       }

@@ -30,17 +30,21 @@ import {
   RunStateHandler
 } from '../../responses';
 import { StateManager } from './StateManager';
+import { EventService } from '../services/EventService';
 
 export class ResponseManager {
   private static instance: ResponseManager;
   private handlers: Map<string, ResponseHandler> = new Map();
   private stateManager: StateManager;
   private config: GameConfig;
+  private eventService: EventService;
 
   private constructor(config: GameConfig, stateManager: StateManager) {
     this.config = config;
     this.stateManager = stateManager;
+    this.eventService = EventService.getInstance();
     this.initializeHandlers();
+    this.setupEventListeners();
   }
 
   private initializeHandlers(): void {
@@ -54,6 +58,14 @@ export class ResponseManager {
 
     handlers.forEach(handler => {
       this.registerHandler(handler);
+    });
+  }
+
+  private setupEventListeners(): void {
+    Object.values(GameEventType).forEach(eventType => {
+      this.eventService.on(eventType, (data: GameEventData[typeof eventType]) => {
+        this.handleResponse(eventType, data);
+      });
     });
   }
 

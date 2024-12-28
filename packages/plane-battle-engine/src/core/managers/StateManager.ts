@@ -27,7 +27,7 @@ import { BulletStateControllerr } from '../../states/BulletStateControllerr';
 // 状态控制器接口
 interface StateController {
   update(state: GameState): void;
-  reset?(): void;
+  reset?(state: GameState): void;
   init?(): void;
 }
 
@@ -168,7 +168,7 @@ export class StateManager {
     // 重置所有控制器
     for (const controller of this.controllers) {
       if (controller.reset) {
-        controller.reset();
+        controller.reset(this.state);
       }
     }
     this.eventCenter.emit(GameEventType.STATE_CHANGE, this.state);

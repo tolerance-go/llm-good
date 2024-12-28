@@ -2,6 +2,10 @@ import { GameCommand } from '../../types/command-types';
 import { CommandService } from '../services/CommandService';
 import { StateManager } from './StateManager';
 import { MoveCommand } from '../../commands/MoveCommand';
+import { ShootCommand } from '../../commands/ShootCommand';
+import { PauseCommand } from '../../commands/PauseCommand';
+import { ResumeCommand } from '../../commands/ResumeCommand';
+import { ResetCommand } from '../../commands/ResetCommand';
 import { GameConfig } from '../../types/config';
 
 /**
@@ -41,8 +45,21 @@ export class CommandManager {
     const moveCommand = new MoveCommand(this.config);
     this.commandService.registerCommand(moveCommand);
 
-    // TODO: 在这里注册其他命令
-    // 例如: ShootCommand, PauseCommand 等
+    // 注册射击命令
+    const shootCommand = new ShootCommand(this.config);
+    this.commandService.registerCommand(shootCommand);
+
+    // 注册暂停命令
+    const pauseCommand = new PauseCommand(this.config);
+    this.commandService.registerCommand(pauseCommand);
+
+    // 注册恢复命令
+    const resumeCommand = new ResumeCommand(this.config);
+    this.commandService.registerCommand(resumeCommand);
+
+    // 注册重置命令
+    const resetCommand = new ResetCommand(this.config);
+    this.commandService.registerCommand(resetCommand);
   }
 
   /**
