@@ -26,7 +26,8 @@ import { GameConfig } from '../../types/config';
 import { 
   KeyboardInputHandler, 
   CollisionHandler, 
-  GameStateHandler 
+  GameStateHandler,
+  RunStateHandler
 } from '../../responses';
 import { StateManager } from './StateManager';
 
@@ -47,7 +48,8 @@ export class ResponseManager {
     const handlers = [
       new KeyboardInputHandler(),
       new CollisionHandler(),
-      new GameStateHandler()
+      new GameStateHandler(),
+      new RunStateHandler()
     ];
 
     handlers.forEach(handler => {
