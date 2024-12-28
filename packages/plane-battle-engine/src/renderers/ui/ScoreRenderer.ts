@@ -1,8 +1,8 @@
 import { Container, Text, Application } from 'pixi.js';
-import { GameState } from '../types/state';
-import { GameConfig } from '../types/config';
-import { LogCollector } from '../utils/LogCollector';
-import { BaseUIRenderer } from '../abstract/BaseUIRenderer';
+import { GameState } from '../../types/state';
+import { GameConfig } from '../../types/config';
+import { LogCollector } from '../../utils/LogCollector';
+import { BaseUIRenderer } from '../../abstract/BaseUIRenderer';
 
 export class ScoreRenderer extends BaseUIRenderer {
   private scoreText: Text | null = null;

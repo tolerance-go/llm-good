@@ -80,6 +80,12 @@ export class PlayerRenderer implements GameRenderer {
       return;
     }
 
+    // 只在游戏进行中显示玩家
+    this.playerSprite.visible = state.status === 'playing';
+
+    // 如果玩家不可见，直接返回
+    if (!this.playerSprite.visible) return;
+
     // 更新玩家精灵的位置
     if (state.player) {
       const newPosition = state.player.position;

@@ -1,10 +1,10 @@
 import { Container, Text, Graphics, Application } from 'pixi.js';
-import { GameState } from '../types/state';
-import { GameConfig } from '../types/config';
-import { LogCollector } from '../utils/LogCollector';
-import { BaseUIRenderer } from '../abstract/BaseUIRenderer';
-import { EventService } from '../core/services/EventService';
-import { GameEventType } from '../types/events';
+import { GameState } from '../../types/state';
+import { GameConfig } from '../../types/config';
+import { LogCollector } from '../../utils/LogCollector';
+import { BaseUIRenderer } from '../../abstract/BaseUIRenderer';
+import { EventService } from '../../core/services/EventService';
+import { GameEventType } from '../../types/events';
 
 export class StartButtonRenderer extends BaseUIRenderer {
   private button: Container | null = null;
@@ -25,10 +25,11 @@ export class StartButtonRenderer extends BaseUIRenderer {
 
   setContainer(container: Container, app: Application): void {
     this.logger.addLog('StartButtonRenderer', '设置容器开始');
+    this.logger.addLog('StartButtonRenderer', `屏幕尺寸: ${app.screen.width}x${app.screen.height}`);
     this.container = container;
     this.app = app;
 
-    // ���建按钮容器
+    // 创建按钮容器
     this.button = new Container();
     
     // 创建按钮背景
@@ -53,35 +54,44 @@ export class StartButtonRenderer extends BaseUIRenderer {
     this.button.addChild(background);
     this.button.addChild(text);
 
-    // 设置按钮位置
-    this.button.position.set(
-      (app.screen.width - 200) / 2,
-      (app.screen.height - 50) / 2
-    );
-
     // 设置按钮交互
     this.button.eventMode = 'static';
     this.button.cursor = 'pointer';
     this.button.on('pointerdown', () => {
+      this.logger.addLog('StartButtonRenderer', '按钮被点击');
       this.eventService.emit(GameEventType.GAME_START, undefined);
     });
 
-    // 添��到主容器
-    container.addChild(this.button);
+    // 设置按钮初始位置（屏幕中心）
+    const centerX = app.screen.width / 2;
+    const centerY = app.screen.height / 2;
+    this.button.position.set(centerX - 100, centerY - 25); // 减去按钮尺寸的一半
 
+    // 添加到主容器
+    container.addChild(this.button);
+    
+    this.logger.addLog('StartButtonRenderer', `按钮位置: x=${this.button.x}, y=${this.button.y}`);
+    this.logger.addLog('StartButtonRenderer', `主容器位置: x=${container.x}, y=${container.y}`);
+    this.logger.addLog('StartButtonRenderer', `主容器可见性: ${container.visible}`);
     this.logger.addLog('StartButtonRenderer', '开始按钮创建完成');
   }
 
   render(state: GameState): void {
     if (!this.button) return;
 
-    // 根据游戏状态显示或隐藏按钮
+    // 只在初始状态和游戏结束时显示按钮
     this.button.visible = state.status === 'init' || state.status === 'gameOver';
-
-    // 更新按钮文本
+    
     if (this.button.visible) {
+      // 更新按钮文本
       const text = this.button.getChildAt(1) as Text;
       text.text = state.status === 'gameOver' ? '重新开始' : '开始游戏';
+      
+      this.logger.addLog('StartButtonRenderer', '更新按钮状态', {
+        visible: this.button.visible,
+        position: { x: this.button.x, y: this.button.y },
+        text: text.text
+      });
     }
   }
 

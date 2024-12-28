@@ -3,7 +3,7 @@ import { RenderService } from '../services/RenderService';
 import { PlayerRenderer } from '../../renderers/PlayerRenderer';
 import { EnemyRenderer } from '../../renderers/EnemyRenderer';
 import { BackgroundRenderer } from '../../renderers/BackgroundRenderer';
-import { ScoreRenderer } from '../../renderers/ScoreRenderer';
+import { ScoreRenderer } from '../../renderers/ui/ScoreRenderer';
 import { Application, Container } from 'pixi.js';
 import { LogCollector } from '../../utils/LogCollector';
 

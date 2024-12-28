@@ -1,10 +1,10 @@
 import { Container, Application } from 'pixi.js';
-import { GameState } from '../types/state';
-import { GameConfig } from '../types/config';
-import { BaseUIRenderer } from '../abstract/BaseUIRenderer';
+import { GameState } from '../../types/state';
+import { GameConfig } from '../../types/config';
+import { BaseUIRenderer } from '../../abstract/BaseUIRenderer';
 import { ScoreRenderer } from './ScoreRenderer';
 import { StartButtonRenderer } from './StartButtonRenderer';
-import { LogCollector } from '../utils/LogCollector';
+import { LogCollector } from '../../utils/LogCollector';
 
 export class UIRenderer extends BaseUIRenderer {
   private renderers: BaseUIRenderer[] = [];

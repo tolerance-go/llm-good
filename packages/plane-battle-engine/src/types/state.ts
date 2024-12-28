@@ -12,6 +12,14 @@ export interface UIState {
     pauseMenu: boolean;
     gameOverScreen: boolean;
   };
+  startButtonState?: {
+    visible: boolean;
+    text: string;
+    position: {
+      x: number;
+      y: number;
+    };
+  };
 }
 
 export interface GameState {

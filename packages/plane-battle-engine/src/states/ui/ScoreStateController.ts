@@ -1,5 +1,5 @@
-import { GameState } from '../types/state';
-import { GameConfig } from '../types/config';
+import { GameState } from '../../types/state';
+import { GameConfig } from '../../types/config';
 
 export class ScoreStateController {
   private config: GameConfig;

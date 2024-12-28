@@ -91,6 +91,7 @@ export interface GameEventData {
     value: {
       currentScreen: UIState['currentScreen'];
       elements: UIState['elements'];
+      startButtonState?: UIState['startButtonState'];
     };
   };
   [GameEventType.RUN_STATE_CHANGE]: {
