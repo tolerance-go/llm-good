@@ -3,6 +3,7 @@ import { RenderService } from '../services/RenderService';
 import { PlayerRenderer } from '../../renderers/PlayerRenderer';
 import { EnemyRenderer } from '../../renderers/EnemyRenderer';
 import { BackgroundRenderer } from '../../renderers/BackgroundRenderer';
+import { ScoreRenderer } from '../../renderers/ScoreRenderer';
 import { Application, Container } from 'pixi.js';
 import { LogCollector } from '../../utils/LogCollector';
 
@@ -41,7 +42,8 @@ export class RendererManager {
     const rendererInstances = [
       { name: 'background', renderer: new BackgroundRenderer() },
       { name: 'player', renderer: new PlayerRenderer() },
-      { name: 'enemy', renderer: new EnemyRenderer() }
+      { name: 'enemy', renderer: new EnemyRenderer() },
+      { name: 'score', renderer: new ScoreRenderer() }
     ];
 
     rendererInstances.forEach(({ name, renderer }) => {
@@ -55,7 +57,7 @@ export class RendererManager {
     this.renderers.set(name, renderer);
     
     if (this.mainContainer && this.app) {
-      (renderer as PlayerRenderer | EnemyRenderer | BackgroundRenderer).setContainer(this.mainContainer, this.app);
+      (renderer as PlayerRenderer | EnemyRenderer | BackgroundRenderer | ScoreRenderer).setContainer(this.mainContainer, this.app);
     }
     
     this.renderService.registerRenderer(renderer);
