@@ -2,6 +2,18 @@ import { Vector2D, Size, Transform } from './base';
 
 export type GameStatus = 'init' | 'menu' | 'playing' | 'paused' | 'gameOver';
 
+export interface UIState {
+  currentScreen: 'menu' | 'game' | 'pause' | 'gameOver';
+  elements: {
+    mainMenu: boolean;
+    startButton: boolean;
+    optionsButton: boolean;
+    scoreDisplay: boolean;
+    pauseMenu: boolean;
+    gameOverScreen: boolean;
+  };
+}
+
 export interface GameState {
   status: GameStatus;
   currentLevel: number;
@@ -35,6 +47,8 @@ export interface GameState {
     updateTime: number;
     renderTime: number;
   };
+  ui: UIState;
+  previousStatus?: GameStatus;
 }
 
 export interface PlayerState extends Transform {

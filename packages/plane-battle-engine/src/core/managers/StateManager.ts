@@ -112,6 +112,17 @@ export class StateManager {
           y: 0,
           pressed: false
         }
+      },
+      ui: {
+        currentScreen: 'menu',
+        elements: {
+          mainMenu: true,
+          startButton: true,
+          optionsButton: true,
+          scoreDisplay: false,
+          pauseMenu: false,
+          gameOverScreen: false
+        }
       }
     };
   }

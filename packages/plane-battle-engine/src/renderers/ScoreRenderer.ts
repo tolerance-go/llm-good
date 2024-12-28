@@ -1,18 +1,15 @@
 import { Container, Text, Application } from 'pixi.js';
 import { GameState } from '../types/state';
-import { GameRenderer, RenderStats } from '../types/renderers';
 import { GameConfig } from '../types/config';
 import { LogCollector } from '../utils/LogCollector';
+import { BaseUIRenderer } from '../abstract/BaseUIRenderer';
 
-export class ScoreRenderer implements GameRenderer {
-  private container: Container | null = null;
+export class ScoreRenderer extends BaseUIRenderer {
   private scoreText: Text | null = null;
-  private config: GameConfig | null = null;
-  private app: Application | null = null;
   private logger: LogCollector;
-  private debugMode: boolean = false;
 
   constructor() {
+    super();
     this.logger = LogCollector.getInstance();
     this.logger.addLog('ScoreRenderer', '创建得分渲染器实例');
   }
@@ -54,7 +51,7 @@ export class ScoreRenderer implements GameRenderer {
     this.logger.addLog('ScoreRenderer', '得分文本创建完成');
   }
 
-  public render(state: GameState): void {
+  render(state: GameState): void {
     if (!this.container || !this.scoreText) {
       this.logger.addLog('ScoreRenderer', '渲染失败：容器或文本不存在');
       return;
@@ -69,19 +66,7 @@ export class ScoreRenderer implements GameRenderer {
     }
   }
 
-  public setDebug(enabled: boolean): void {
-    this.debugMode = enabled;
-  }
-
-  public getStats(): RenderStats {
-    return {
-      fps: 0,
-      drawCalls: 1,
-      entities: 1
-    };
-  }
-
-  public destroy(): void {
+  destroy(): void {
     this.logger.addLog('ScoreRenderer', '开始销毁得分渲染器');
     if (this.scoreText) {
       this.logger.addLog('ScoreRenderer', '销毁得分文本');

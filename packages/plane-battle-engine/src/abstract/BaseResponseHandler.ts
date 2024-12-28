@@ -7,7 +7,7 @@ export abstract class BaseResponseHandler implements ResponseHandler {
   private enabled: boolean = true;
 
   abstract getName(): string;
-  abstract handle(eventType: GameEventType, data: GameEventData[GameEventType], state: GameState, config: GameConfig): void;
+  abstract handle(eventType: GameEventType, data: GameEventData[GameEventType], state: GameState, config?: GameConfig): void;
   abstract canHandle(eventType: GameEventType): boolean;
   abstract getPriority(): number;
 

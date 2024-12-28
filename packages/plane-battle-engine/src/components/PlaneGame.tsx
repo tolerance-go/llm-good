@@ -1,4 +1,4 @@
-import React, { forwardRef, useRef, useEffect, useImperativeHandle, useState } from 'react';
+import React, { forwardRef, useRef, useEffect, useImperativeHandle } from 'react';
 import { GameEngine } from '../core/GameEngine';
 import { DEFAULT_CONFIG } from '../types/config';
 import type { GameConfig } from '../types/config';
@@ -24,7 +24,6 @@ const PlaneGame = forwardRef<PlaneGameHandle, PlaneGameProps>(({
 }, ref) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const engineRef = useRef<GameEngine | null>(null);
-  const [gameStatus, setGameStatus] = useState<'init' | 'loading' | 'ready' | 'playing' | 'paused' | 'gameOver'>('init');
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -41,8 +40,6 @@ const PlaneGame = forwardRef<PlaneGameHandle, PlaneGameProps>(({
       }
     };
 
-    setGameStatus('loading');
-
     // 初始化游戏引擎
     try {
       engineRef.current = new GameEngine(mergedConfig, containerRef.current);
@@ -51,16 +48,8 @@ const PlaneGame = forwardRef<PlaneGameHandle, PlaneGameProps>(({
       if (onStateChange) {
         engineRef.current.on(GameEventType.STATE_CHANGE, onStateChange);
       }
-
-      // 添加游戏结束监听
-      engineRef.current.on(GameEventType.GAME_OVER, () => {
-        setGameStatus('gameOver');
-      });
-
-      setGameStatus('ready');
     } catch (error) {
       console.error('游戏引擎初始化失败:', error);
-      setGameStatus('init');
     }
 
     return () => {
@@ -69,37 +58,19 @@ const PlaneGame = forwardRef<PlaneGameHandle, PlaneGameProps>(({
     };
   }, []);
 
-  const startGame = () => {
-    if (engineRef.current) {
-      engineRef.current.startGame();
-      setGameStatus('playing');
-    }
-  };
-
   useImperativeHandle(ref, () => ({
     pauseGame: () => {
-      if (engineRef.current) {
-        engineRef.current.pauseGame();
-        setGameStatus('paused');
-      }
+      engineRef.current?.pauseGame();
     },
     resumeGame: () => {
-      if (engineRef.current) {
-        engineRef.current.resumeGame();
-        setGameStatus('playing');
-      }
+      engineRef.current?.resumeGame();
     },
     resetGame: () => {
-      if (engineRef.current) {
-        engineRef.current.resetGame();
-        setGameStatus('ready');
-      }
+      engineRef.current?.resetGame();
     },
     getCurrentState: () => engineRef.current?.getState() || null,
     updateConfig: (newConfig) => {
-      if (engineRef.current) {
-        engineRef.current.updateConfig(newConfig);
-      }
+      engineRef.current?.updateConfig(newConfig);
     }
   }));
 
@@ -115,65 +86,7 @@ const PlaneGame = forwardRef<PlaneGameHandle, PlaneGameProps>(({
         justifyContent: 'center',
         alignItems: 'center'
       }}
-    >
-      {gameStatus === 'loading' && (
-        <div style={{ color: 'white', fontSize: '20px' }}>
-          加载中...
-        </div>
-      )}
-      {gameStatus === 'ready' && (
-        <button
-          onClick={startGame}
-          style={{
-            position: 'absolute',
-            padding: '15px 30px',
-            fontSize: '20px',
-            backgroundColor: '#4CAF50',
-            color: 'white',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer',
-            zIndex: 1
-          }}
-        >
-          开始游戏
-        </button>
-      )}
-      {gameStatus === 'gameOver' && (
-        <div
-          style={{
-            position: 'absolute',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '20px',
-            zIndex: 1
-          }}
-        >
-          <h2 style={{ color: 'white', margin: 0 }}>游戏结束</h2>
-          <button
-            onClick={() => {
-              if (engineRef.current) {
-                engineRef.current.resetGame();
-                engineRef.current.startGame();
-                setGameStatus('playing');
-              }
-            }}
-            style={{
-              padding: '15px 30px',
-              fontSize: '20px',
-              backgroundColor: '#4CAF50',
-              color: 'white',
-              border: 'none',
-              borderRadius: '5px',
-              cursor: 'pointer'
-            }}
-          >
-            重新开始
-          </button>
-        </div>
-      )}
-    </div>
+    />
   );
 });
 

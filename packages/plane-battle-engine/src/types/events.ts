@@ -1,4 +1,4 @@
-import { GameState, GameStatus } from './state';
+import { GameState, UIState, GameStatus } from './state';
 import { GameConfig } from './config';
 import { PlayerInput } from './renderers';
 
@@ -45,6 +45,7 @@ export enum GameEventType {
   // 系统事件
   CONFIG_CHANGE = 'system:config-change',
   STATE_CHANGE = 'system:state-change',
+  UI_STATE_CHANGE = 'system:ui-state-change',
   RUN_STATE_CHANGE = 'system:run-state-change',
   INPUT_CHANGE = 'system:input-change',
   RENDER_FRAME = 'system:render-frame',
@@ -85,6 +86,13 @@ export interface GameEventData {
   
   [GameEventType.CONFIG_CHANGE]: GameConfig;
   [GameEventType.STATE_CHANGE]: GameState;
+  [GameEventType.UI_STATE_CHANGE]: {
+    type: 'visibility';
+    value: {
+      currentScreen: UIState['currentScreen'];
+      elements: UIState['elements'];
+    };
+  };
   [GameEventType.RUN_STATE_CHANGE]: {
     type: 'status';
     value: {
