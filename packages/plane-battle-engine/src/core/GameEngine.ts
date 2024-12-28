@@ -25,7 +25,6 @@ import { LogCollector } from '../utils/LogCollector';
 
 // 导入核心服务
 import { EventService } from './services/EventService';
-import { CommandService } from './services/CommandService';
 import { RenderService } from './services/RenderService';
 import { InputService } from './services/InputService';
 
@@ -34,12 +33,13 @@ import { ConfigManager } from './managers/ConfigManager';
 import { StateManager } from './managers/StateManager';
 import { ResponseManager } from './managers/ResponseManager';
 import { RendererManager } from './managers/RendererManager';
+import { CommandManager } from './managers/CommandManager';
 
 export class GameEngine {
   private configManager: ConfigManager;
   private stateManager: StateManager;
   private eventService: EventService;
-  private commandService: CommandService;
+  private commandManager: CommandManager;
   private renderService: RenderService;
   private responseManager: ResponseManager;
   private inputService: InputService;
@@ -66,8 +66,8 @@ export class GameEngine {
     // 初始化渲染服务
     this.renderService = RenderService.getInstance();
     
-    // 初始化命令服务
-    this.commandService = CommandService.getInstance(this.stateManager);
+    // 初始化命令管理器
+    this.commandManager = CommandManager.getInstance(this.stateManager, gameConfig);
     
     // 初始化响应管理器
     this.responseManager = ResponseManager.getInstance(gameConfig, this.stateManager);
