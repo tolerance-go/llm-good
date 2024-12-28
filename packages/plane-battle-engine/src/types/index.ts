@@ -4,4 +4,4 @@ export * from './config';
 export * from './renderers';
 export * from './command-types';
 export * from './events';
-export * from './response-types'; 
+export * from './response-types';

@@ -12,21 +12,7 @@
  * - GameState: 游戏状态类型
  * - GameConfig: 游戏配置
  * - EventCenter: 事件中心
- * - GameStateManager: 游戏状态管理器
- * - PlayerStateManager: 玩家状态管理器
- * - EnemyStateManager: 敌人状态管理器
- * - BulletStateManager: 子弹状态管理器
- * 
- * @usedBy
- * - GameEngine: 游戏引擎使用状态管理器维护游戏状态
- * - CommandCenter: 命令中心通过状态管理器修改游戏状态
- * - ResponseManager: 响应管理器通过状态管理器获取当前状态
- * 
- * @features
- * - 状态的原子性更新
- * - 状态变更事件通知
- * - 子状态管理器的协调
- * - 性能指标的跟踪
+ * - StateController: 状态控制器接口
  */
 
 import { GameState, GameStatus } from '../../types/state';
@@ -38,23 +24,39 @@ import { PlayerStateController } from '../../states/PlayerStateController';
 import { EnemyStateController } from '../../states/EnemyStateController';
 import { BulletStateControllerr } from '../../states/BulletStateControllerr';
 
+// 状态控制器接口
+interface StateController {
+  update(state: GameState): void;
+  reset?(): void;
+  init?(): void;
+}
+
 export class StateManager {
+  private static instance: StateManager;
   private state: GameState;
   private config: GameConfig;
   private eventCenter: EventService;
-  private gameStateManager: GameStateController;
-  private playerStateManager: PlayerStateController;
-  private enemyStateManager: EnemyStateController;
-  private bulletStateManager: BulletStateControllerr;
+  private controllers: StateController[] = [];
 
-  constructor(config: GameConfig) {
+  private constructor(config: GameConfig) {
     this.config = config;
     this.eventCenter = EventService.getInstance();
-    this.gameStateManager = new GameStateController(config);
-    this.playerStateManager = new PlayerStateController(config);
-    this.enemyStateManager = new EnemyStateController(config);
-    this.bulletStateManager = new BulletStateControllerr(config);
     this.state = this.initializeState();
+    
+    // 初始化所有控制器
+    this.controllers = [
+      new GameStateController(config),
+      new PlayerStateController(config),
+      new EnemyStateController(config),
+      new BulletStateControllerr(config),
+    ];
+  }
+
+  public static getInstance(config: GameConfig): StateManager {
+    if (!StateManager.instance) {
+      StateManager.instance = new StateManager(config);
+    }
+    return StateManager.instance;
   }
 
   private initializeState(): GameState {
@@ -149,14 +151,11 @@ export class StateManager {
         renderTime: 0
       };
 
-      // 更新游戏状态
-      this.gameStateManager.update(this.state);
-
-      // 更新各个实体状态
+      // 如果游戏没有暂停且没有结束，更新所有控制器
       if (!this.state.isPaused && !this.state.isGameOver) {
-        this.playerStateManager.update(this.state);
-        this.enemyStateManager.update(this.state);
-        this.bulletStateManager.update(this.state);
+        for (const controller of this.controllers) {
+          controller.update(this.state);
+        }
       }
 
       // 发送状态更新事件
@@ -166,7 +165,26 @@ export class StateManager {
 
   resetState(): void {
     this.state = this.initializeState();
+    // 重置所有控制器
+    for (const controller of this.controllers) {
+      if (controller.reset) {
+        controller.reset();
+      }
+    }
     this.eventCenter.emit(GameEventType.STATE_CHANGE, this.state);
+  }
+
+  // 添加新的控制器
+  addController(controller: StateController): void {
+    this.controllers.push(controller);
+  }
+
+  // 移除控制器
+  removeController(controller: StateController): void {
+    const index = this.controllers.indexOf(controller);
+    if (index !== -1) {
+      this.controllers.splice(index, 1);
+    }
   }
 
   getGameStatus(): GameStatus {
@@ -176,5 +194,10 @@ export class StateManager {
   setGameStatus(status: GameStatus): void {
     this.state.status = status;
     this.eventCenter.emit(GameEventType.STATE_CHANGE, this.state);
+  }
+
+  // 获取特定类型的控制器
+  getController<T extends StateController>(controllerType: new (config: GameConfig) => T): T | undefined {
+    return this.controllers.find((controller): controller is T => controller instanceof controllerType);
   }
 } 

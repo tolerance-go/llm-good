@@ -47,7 +47,7 @@ const PixiServiceDemo: React.FC<PixiServiceDemoProps> = ({
 
   useEffect(() => {
     if (containerRef.current) {
-      const pixiService = new PixiService();
+      const pixiService = PixiService.getInstance();
       pixiServiceRef.current = pixiService;
 
       // 初始化 PixiJS

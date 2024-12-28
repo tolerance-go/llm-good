@@ -30,6 +30,19 @@ export class InputService {
   private logger: LogCollector;
   private eventCenter: EventService;
   private enabled: boolean = true;
+  private keyboardState: {
+    left: boolean;
+    right: boolean;
+    up: boolean;
+    down: boolean;
+    space: boolean;
+  } = {
+    left: false,
+    right: false,
+    up: false,
+    down: false,
+    space: false
+  };
 
   private constructor() {
     this.logger = LogCollector.getInstance();
@@ -54,59 +67,35 @@ export class InputService {
 
     this.logger.addLog('Input', `键盘按下: ${event.code}`, { code: event.code });
 
-    let moveDirection = { x: 0, y: 0 };
-    let shouldEmitMove = true;
-
     switch (event.code) {
-      case 'Space':
-        shouldEmitMove = false;
-        this.eventCenter.emit(GameEventType.INPUT_CHANGE, {
-          type: 'fire',
-          data: { pressed: true }
-        });
-        break;
-      case 'Escape':
-        shouldEmitMove = false;
-        this.eventCenter.emit(GameEventType.INPUT_CHANGE, {
-          type: 'pause',
-          data: { pressed: true }
-        });
-        break;
       case 'ArrowLeft':
       case 'KeyA':
-        moveDirection = { x: -1, y: 0 };
+        this.keyboardState.left = true;
         break;
       case 'ArrowRight':
       case 'KeyD':
-        moveDirection = { x: 1, y: 0 };
+        this.keyboardState.right = true;
         break;
       case 'ArrowUp':
       case 'KeyW':
-        moveDirection = { x: 0, y: -1 };
+        this.keyboardState.up = true;
         break;
       case 'ArrowDown':
       case 'KeyS':
-        moveDirection = { x: 0, y: 1 };
+        this.keyboardState.down = true;
         break;
-      default:
-        shouldEmitMove = false;
+      case 'Space':
+        this.keyboardState.space = true;
+        break;
     }
 
-    if (shouldEmitMove) {
-      this.logger.addLog('Input', `发送移动指令`, { direction: moveDirection });
-      const input: PlayerInput = {
-        type: 'move',
-        data: moveDirection,
-        keyboard: {
-          left: moveDirection.x < 0,
-          right: moveDirection.x > 0,
-          up: moveDirection.y < 0,
-          down: moveDirection.y > 0,
-          space: false
-        }
-      };
-      this.eventCenter.emit(GameEventType.INPUT_CHANGE, input);
-    }
+    // 发送键盘状态变更事件
+    const input: PlayerInput = {
+      type: 'keyboard',
+      data: { pressed: true, key: event.code },
+      keyboard: { ...this.keyboardState }
+    };
+    this.eventCenter.emit(GameEventType.INPUT_CHANGE, input);
   }
 
   private handleKeyUp(event: KeyboardEvent): void {
@@ -114,41 +103,35 @@ export class InputService {
 
     this.logger.addLog('Input', `键盘释放: ${event.code}`, { code: event.code });
 
-    let input: PlayerInput | null = null;
-
     switch (event.code) {
-      case 'Space':
-        input = {
-          type: 'fire',
-          data: { pressed: false }
-        };
-        break;
       case 'ArrowLeft':
       case 'KeyA':
+        this.keyboardState.left = false;
+        break;
       case 'ArrowRight':
       case 'KeyD':
+        this.keyboardState.right = false;
+        break;
       case 'ArrowUp':
       case 'KeyW':
+        this.keyboardState.up = false;
+        break;
       case 'ArrowDown':
       case 'KeyS':
-        this.logger.addLog('Input', `停止移动`, { code: event.code });
-        input = {
-          type: 'move',
-          data: { x: 0, y: 0 },
-          keyboard: {
-            left: false,
-            right: false,
-            up: false,
-            down: false,
-            space: false
-          }
-        };
+        this.keyboardState.down = false;
+        break;
+      case 'Space':
+        this.keyboardState.space = false;
         break;
     }
 
-    if (input) {
-      this.eventCenter.emit(GameEventType.INPUT_CHANGE, input);
-    }
+    // 发送键盘状态变更事件
+    const input: PlayerInput = {
+      type: 'keyboard',
+      data: { pressed: false, key: event.code },
+      keyboard: { ...this.keyboardState }
+    };
+    this.eventCenter.emit(GameEventType.INPUT_CHANGE, input);
   }
 
   public setEnabled(enabled: boolean): void {

@@ -37,9 +37,9 @@ export class ResponseManager {
   private stateManager: StateManager;
   private config: GameConfig;
 
-  private constructor(config: GameConfig) {
+  private constructor(config: GameConfig, stateManager: StateManager) {
     this.config = config;
-    this.stateManager = new StateManager(config);
+    this.stateManager = stateManager;
     this.initializeHandlers();
   }
 
@@ -57,9 +57,9 @@ export class ResponseManager {
     });
   }
 
-  public static getInstance(config?: GameConfig): ResponseManager {
-    if (!ResponseManager.instance && config) {
-      ResponseManager.instance = new ResponseManager(config);
+  public static getInstance(config: GameConfig, stateManager: StateManager): ResponseManager {
+    if (!ResponseManager.instance) {
+      ResponseManager.instance = new ResponseManager(config, stateManager);
     }
     return ResponseManager.instance;
   }

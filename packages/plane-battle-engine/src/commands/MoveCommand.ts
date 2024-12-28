@@ -4,6 +4,7 @@ import { StateManager } from '../core/managers/StateManager';
 import { EventService } from '../core/services/EventService';
 import { GameEventType } from '../types/events';
 import { LogCollector } from '../utils/LogCollector';
+import { PlayerStateController } from '../states/PlayerStateController';
 
 export class MoveCommand implements GameCommand {
   private config: GameConfig;
@@ -23,39 +24,20 @@ export class MoveCommand implements GameCommand {
       throw new Error('StateManager or params not set');
     }
 
-    const state = stateManager.getState();
     const { direction, deltaTime } = params;
+    const state = stateManager.getState();
     
-    // 记录移动开始日志
-    this.logger.addLog('Movement', `Player moving - Direction: (${direction.x}, ${direction.y}), Speed: ${state.player.speed}, DeltaTime: ${deltaTime}`, {
+    // 记录移动日志
+    this.logger.addLog('Movement', `Player moving command executed - Direction: (${direction.x}, ${direction.y})`, {
       direction,
-      speed: state.player.speed,
-      deltaTime,
-      currentPosition: state.player.position
-    });
-    
-    // 更新玩家位置
-    const speed = state.player.speed * deltaTime;
-    const newX = state.player.position.x + direction.x * speed;
-    const newY = state.player.position.y + direction.y * speed;
-
-    // 确保玩家不会移出画布
-    const minX = state.player.size.width / 2;
-    const maxX = this.config.canvas.width - state.player.size.width / 2;
-    const minY = state.player.size.height / 2;
-    const maxY = this.config.canvas.height - state.player.size.height / 2;
-
-    state.player.position.x = Math.max(minX, Math.min(maxX, newX));
-    state.player.position.y = Math.max(minY, Math.min(maxY, newY));
-
-    // 记录最终位置日志
-    this.logger.addLog('Movement', `Player moved to position: (${state.player.position.x}, ${state.player.position.y})`, {
-      newPosition: state.player.position,
-      wasConstrained: newX !== state.player.position.x || newY !== state.player.position.y
+      deltaTime
     });
 
-    // 更新状态
-    stateManager.setState(state);
+    // 通过 StateManager 获取 PlayerStateController 来处理移动
+    const playerController = stateManager.getController(PlayerStateController);
+    if (playerController) {
+      playerController.move(state, direction, deltaTime);
+    }
     
     // 发送移动事件
     eventCenter.emit(GameEventType.PLAYER_MOVE, {

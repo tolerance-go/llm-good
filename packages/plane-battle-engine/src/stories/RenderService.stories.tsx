@@ -254,7 +254,7 @@ const RenderServiceDemo: React.FC = () => {
         logger.addLog('RenderServiceDemo', '开始初始化游戏');
 
         // 创建渲染服务实例
-        const renderService = new RenderService();
+        const renderService = RenderService.getInstance();
         renderServiceRef.current = renderService;
 
         // 等待渲染服务初始化完成

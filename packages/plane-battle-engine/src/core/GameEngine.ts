@@ -58,19 +58,19 @@ export class GameEngine {
     const gameConfig = this.configManager.getConfig();
     
     // 初始化状态管理器
-    this.stateManager = new StateManager(gameConfig);
+    this.stateManager = StateManager.getInstance(gameConfig);
     
     // 初始化事件服务
     this.eventService = EventService.getInstance();
     
     // 初始化渲染服务
-    this.renderService = new RenderService();
+    this.renderService = RenderService.getInstance();
     
     // 初始化命令服务
     this.commandService = CommandService.getInstance(this.stateManager);
     
     // 初始化响应管理器
-    this.responseManager = ResponseManager.getInstance(gameConfig);
+    this.responseManager = ResponseManager.getInstance(gameConfig, this.stateManager);
     
     // 初始化输入服务
     this.inputService = InputService.getInstance();

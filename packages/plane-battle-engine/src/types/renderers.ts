@@ -10,11 +10,12 @@ export interface RenderStats {
 
 // 玩家输入类型
 export interface PlayerInput {
-  type: 'move' | 'fire' | 'pause';
+  type: 'move' | 'fire' | 'pause' | 'keyboard';
   data: {
     x?: number;
     y?: number;
     pressed?: boolean;
+    key?: string;
   };
   keyboard?: {
     up: boolean;
