@@ -79,4 +79,9 @@ export interface TypedCommand<T extends CommandType> {
 export interface CommandHandler<T extends CommandType> {
   type: T;
   handle(data: CommandDataMap[T]): void | CommandReturnMap[T] | Promise<void | CommandReturnMap[T]>;
+}
+
+export interface CommandMiddleware {
+  before?: (commandType: CommandType, params: any) => Promise<void> | void;
+  after?: (commandType: CommandType, params: any, result: any) => Promise<void> | void;
 } 

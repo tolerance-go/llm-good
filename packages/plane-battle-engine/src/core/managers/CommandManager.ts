@@ -8,6 +8,7 @@ import { ResumeCommand } from '../../commands/ResumeCommand';
 import { ResetCommand } from '../../commands/ResetCommand';
 import { GameConfig } from '../../types/config';
 import { EventService } from '../services/EventService';
+import { StateLoggerMiddleware } from '../../middlewares/StateLoggerMiddleware';
 
 /**
  * @class CommandManager
@@ -30,8 +31,19 @@ export class CommandManager {
     this.eventService = eventService;
     this.stateManager = stateManager;
 
-    // 在构造函数中初始化所有命令
+    // 初始化中间件
+    this.initializeMiddlewares();
+    // 初始化命令
     this.initializeCommands();
+  }
+
+  /**
+   * 初始化中间件
+   */
+  private initializeMiddlewares(): void {
+    // 注册状态日志中间件
+    const stateLoggerMiddleware = new StateLoggerMiddleware(this.stateManager);
+    this.commandService.registerMiddleware(stateLoggerMiddleware);
   }
 
   /**

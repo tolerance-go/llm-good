@@ -26,17 +26,23 @@ import {
   CommandType,
   CommandDataMap,
   CommandReturnMap,
+  CommandMiddleware,
 } from "../../types/command-types";
 import { EventService } from "./EventService";
 
 export class CommandService {
   private commands: Map<CommandType, GameCommand> = new Map();
+  private middlewares: CommandMiddleware[] = [];
   private stateManager: StateManager;
   private eventService: EventService;
 
   constructor(stateManager: StateManager, eventService: EventService) {
     this.stateManager = stateManager;
     this.eventService = eventService;
+  }
+
+  public registerMiddleware(middleware: CommandMiddleware): void {
+    this.middlewares.push(middleware);
   }
 
   public registerCommand(command: GameCommand): void {
@@ -50,7 +56,23 @@ export class CommandService {
     const command = this.commands.get(commandType);
     if (command) {
       try {
+        // 执行前置中间件
+        for (const middleware of this.middlewares) {
+          if (middleware.before) {
+            await middleware.before(commandType, params);
+          }
+        }
+
+        // 执行命令
         const result = await command.execute(params);
+
+        // 执行后置中间件
+        for (const middleware of this.middlewares) {
+          if (middleware.after) {
+            await middleware.after(commandType, params, result);
+          }
+        }
+
         return result as CommandReturnMap[T];
       } catch (error) {
         console.error(`Error executing command ${commandType}:`, error);
