@@ -30,7 +30,7 @@ export interface PlayerInput {
 // 渲染器接口
 export interface GameRenderer {
   // 初始化渲染器
-  initialize(config: GameConfig, pixiService: PixiService): Promise<void>;
+  initialize(config: GameConfig, pixiService: PixiService, initialState: GameState): Promise<void>;
   
   // 清理资源
   destroy(): void;

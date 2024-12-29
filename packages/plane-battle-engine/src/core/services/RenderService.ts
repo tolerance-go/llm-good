@@ -51,10 +51,86 @@ export class RenderService {
     // 使用 PixiService 初始化应用实例
     await this.pixiService.initialize(config, container);
     
+    // 创建初始状态
+    const initialState: GameState = {
+      status: 'playing',
+      currentLevel: 1,
+      currentWave: 1,
+      score: 0,
+      time: 0,
+      isPaused: false,
+      isGameOver: false,
+      player: {
+        id: 'player-1',
+        position: {
+          x: config.canvas.width / 2,
+          y: config.canvas.height - 100
+        },
+        rotation: 0,
+        scale: { x: 1, y: 1 },
+        health: config.player.initialHealth,
+        lives: config.player.lives,
+        size: config.player.size,
+        speed: config.player.speed,
+        score: 0,
+        fireRate: config.player.fireRate,
+        lastFireTime: 0,
+        powerups: [],
+        invincible: false,
+        respawning: false,
+        velocity: { x: 0, y: 0 },
+        active: true,
+        combo: {
+          count: 0,
+          timer: 0,
+          multiplier: 1
+        },
+        weapons: {
+          bulletSpeed: config.weapons.bulletSpeed,
+          bulletDamage: config.weapons.bulletDamage
+        }
+      },
+      enemies: [],
+      bullets: [],
+      powerups: [],
+      input: {
+        type: 'move',
+        data: {
+          x: 0,
+          y: 0,
+          pressed: false
+        },
+        keyboard: {
+          up: false,
+          down: false,
+          left: false,
+          right: false,
+          space: false
+        }
+      },
+      performance: {
+        fps: 60,
+        frameTime: 16.67,
+        updateTime: 0,
+        renderTime: 0
+      },
+      ui: {
+        currentScreen: 'game',
+        elements: {
+          mainMenu: false,
+          startButton: false,
+          optionsButton: false,
+          scoreDisplay: true,
+          pauseMenu: false,
+          gameOverScreen: false
+        }
+      }
+    };
+    
     // 初始化所有渲染器
     for (const renderer of this.renderers) {
       if (this.config) {
-        await renderer.initialize(this.config, this.pixiService);
+        await renderer.initialize(this.config, this.pixiService, initialState);
         this.logger.addLog('RenderService', '渲染器初始化完成', { 
           rendererType: renderer.constructor.name
         });
@@ -66,7 +142,82 @@ export class RenderService {
     this.logger.addLog('RenderService', '注册新渲染器', { rendererType: renderer.constructor.name });
     this.renderers.add(renderer);
     if (this.config && this.pixiService.getApp()) {
-      renderer.initialize(this.config, this.pixiService);
+      // 创建初始状态
+      const initialState: GameState = {
+        status: 'playing',
+        currentLevel: 1,
+        currentWave: 1,
+        score: 0,
+        time: 0,
+        isPaused: false,
+        isGameOver: false,
+        player: {
+          id: 'player-1',
+          position: {
+            x: this.config.canvas.width / 2,
+            y: this.config.canvas.height - 100
+          },
+          rotation: 0,
+          scale: { x: 1, y: 1 },
+          health: this.config.player.initialHealth,
+          lives: this.config.player.lives,
+          size: this.config.player.size,
+          speed: this.config.player.speed,
+          score: 0,
+          fireRate: this.config.player.fireRate,
+          lastFireTime: 0,
+          powerups: [],
+          invincible: false,
+          respawning: false,
+          velocity: { x: 0, y: 0 },
+          active: true,
+          combo: {
+            count: 0,
+            timer: 0,
+            multiplier: 1
+          },
+          weapons: {
+            bulletSpeed: this.config.weapons.bulletSpeed,
+            bulletDamage: this.config.weapons.bulletDamage
+          }
+        },
+        enemies: [],
+        bullets: [],
+        powerups: [],
+        input: {
+          type: 'move',
+          data: {
+            x: 0,
+            y: 0,
+            pressed: false
+          },
+          keyboard: {
+            up: false,
+            down: false,
+            left: false,
+            right: false,
+            space: false
+          }
+        },
+        performance: {
+          fps: 60,
+          frameTime: 16.67,
+          updateTime: 0,
+          renderTime: 0
+        },
+        ui: {
+          currentScreen: 'game',
+          elements: {
+            mainMenu: false,
+            startButton: false,
+            optionsButton: false,
+            scoreDisplay: true,
+            pauseMenu: false,
+            gameOverScreen: false
+          }
+        }
+      };
+      renderer.initialize(this.config, this.pixiService, initialState);
       this.logger.addLog('RenderService', '渲染器初始化完成', { 
         rendererType: renderer.constructor.name
       });

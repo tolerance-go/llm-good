@@ -8,24 +8,27 @@ import { PixiService } from '../core/services/PixiService';
 export class PlayerRenderer implements GameRenderer {
   private container: Container | null = null;
   private playerSprite: Sprite | null = null;
-  private lastPosition: { x: number; y: number } = { x: 400, y: 568 };
+  private lastPosition: { x: number; y: number } = { x: 0, y: 0 };
   private logger: LogCollector;
   private debugMode: boolean = false;
   private config: GameConfig | null = null;
   private debugGraphics: Graphics | null = null;
   private app: Application | null = null;
+  private currentState: GameState | null = null;
 
   constructor() {
     this.logger = LogCollector.getInstance();
     this.logger.addLog('PlayerRenderer', '创建玩家渲染器实例');
   }
 
-  async initialize(config: GameConfig, pixiService: PixiService): Promise<void> {
+  async initialize(config: GameConfig, pixiService: PixiService, initialState: GameState): Promise<void> {
     this.logger.addLog('PlayerRenderer', '初始化玩家渲染器', { 
       hasConfig: !!config,
-      hasPixiService: !!pixiService
+      hasPixiService: !!pixiService,
+      hasInitialState: !!initialState
     });
     this.config = config;
+    this.currentState = initialState;
     
     // 获取 PixiJS 应用实例
     const app = pixiService.getApp();
@@ -59,18 +62,26 @@ export class PlayerRenderer implements GameRenderer {
     this.playerSprite = new Sprite(texture);
     graphics.destroy();
     
-    // 设置初始位置
-    this.playerSprite.position.set(400, 568);
-    
     // 设置锚点为中心
     this.playerSprite.anchor.set(0.5);
+    
+    // 设置初始位置
+    if (initialState.player) {
+      const initialPosition = initialState.player.position;
+      this.playerSprite.position.set(initialPosition.x, initialPosition.y);
+      this.lastPosition = { ...initialPosition };
+      
+      this.logger.addLog('PlayerRenderer', '设置初始位置', {
+        position: initialPosition
+      });
+    }
     
     // 添加到容器
     this.container.addChild(this.playerSprite);
 
     this.logger.addLog('PlayerRenderer', '玩家精灵创建完成', { 
-      position: { x: 400, y: 568 },
-      hasSprite: !!this.playerSprite
+      hasSprite: !!this.playerSprite,
+      position: this.lastPosition
     });
   }
 
@@ -82,6 +93,8 @@ export class PlayerRenderer implements GameRenderer {
       });
       return;
     }
+
+    this.currentState = state;
 
     // 只在游戏进行中显示玩家
     this.playerSprite.visible = state.status === 'playing';
@@ -183,6 +196,7 @@ export class PlayerRenderer implements GameRenderer {
     }
     this.container = null;
     this.app = null;
+    this.currentState = null;
     this.logger.addLog('PlayerRenderer', '玩家渲染器销毁完成');
   }
 } 
