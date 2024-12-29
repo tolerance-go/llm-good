@@ -49,6 +49,7 @@ export enum GameEventType {
   RUN_STATE_CHANGE = 'system:run-state-change',
   INPUT_CHANGE = 'system:input-change',
   RENDER_FRAME = 'system:render-frame',
+  GAME_UPDATE = 'system:game-update',
   ERROR = 'system:error'
 }
 
@@ -104,5 +105,6 @@ export interface GameEventData {
   };
   [GameEventType.INPUT_CHANGE]: PlayerInput;
   [GameEventType.RENDER_FRAME]: { deltaTime: number };
+  [GameEventType.GAME_UPDATE]: { deltaTime: number };
   [GameEventType.ERROR]: { code: string; message: string };
 } 

@@ -8,6 +8,8 @@ import { GameConfig } from '../types/config';
 import { LogCollector } from '../utils/LogCollector';
 import { PixiService } from '../core/services/PixiService';
 import { EventService } from '../core/services/EventService';
+import { GameLoopService } from '../core/services/GameLoopService';
+import { GameEventType } from '../types/events';
 
 // 创建一个按钮渲染器
 class StartButtonRenderer implements GameRenderer {
@@ -135,6 +137,7 @@ class StartButtonRenderer implements GameRenderer {
 const RenderServiceDemo: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const renderServiceRef = useRef<RenderService | null>(null);
+  const gameLoopServiceRef = useRef<GameLoopService | null>(null);
   const logger = LogCollector.getInstance();
 
   useEffect(() => {
@@ -249,11 +252,78 @@ const RenderServiceDemo: React.FC = () => {
       }
     };
 
-    let animationFrameId: number;
+    // 设置初始游戏状态
+    const initialState: GameState = {
+      status: 'init',
+      currentLevel: 1,
+      currentWave: 1,
+      score: 0,
+      time: 0,
+      isPaused: false,
+      isGameOver: false,
+      performance: {
+        fps: 0,
+        frameTime: 0,
+        updateTime: 0,
+        renderTime: 0
+      },
+      player: {
+        id: 'player',
+        health: config.player.initialHealth,
+        lives: config.player.lives,
+        position: config.player.respawnPosition,
+        velocity: { x: 0, y: 0 },
+        rotation: 0,
+        scale: { x: 1, y: 1 },
+        size: config.player.size,
+        speed: config.player.speed,
+        score: 0,
+        fireRate: config.player.fireRate,
+        lastFireTime: 0,
+        powerups: [],
+        invincible: false,
+        respawning: false,
+        active: true,
+        combo: {
+          count: 0,
+          timer: 0,
+          multiplier: 1
+        },
+        weapons: {
+          bulletSpeed: config.weapons.bulletSpeed,
+          bulletDamage: config.weapons.bulletDamage
+        }
+      },
+      enemies: [],
+      bullets: [],
+      powerups: [],
+      input: {
+        type: 'move',
+        data: {
+          x: 0,
+          y: 0,
+          pressed: false
+        }
+      },
+      ui: {
+        currentScreen: 'menu',
+        elements: {
+          mainMenu: true,
+          startButton: true,
+          optionsButton: true,
+          scoreDisplay: false,
+          pauseMenu: false,
+          gameOverScreen: false
+        }
+      }
+    };
 
     const initializeGame = async () => {
       try {
         logger.addLog('RenderServiceDemo', '开始初始化游戏');
+
+        // 创建事件服务
+        const eventService = new EventService();
 
         // 创建渲染服务实例
         const renderService = new RenderService(new PixiService());
@@ -263,86 +333,24 @@ const RenderServiceDemo: React.FC = () => {
         await renderService.initialize(config, container);
 
         // 创建并添加按钮渲染器
-        const eventService = new EventService();
         const buttonRenderer = new StartButtonRenderer(eventService);
         await buttonRenderer.initialize(config, renderService.getApp()!.canvas);
         renderService.registerRenderer(buttonRenderer);
 
-        // 设置初始游戏状态
-        const initialState: GameState = {
-          status: 'init',
-          currentLevel: 1,
-          currentWave: 1,
-          score: 0,
-          time: 0,
-          isPaused: false,
-          isGameOver: false,
-          performance: {
-            fps: 0,
-            frameTime: 0,
-            updateTime: 0,
-            renderTime: 0
-          },
-          player: {
-            id: 'player',
-            health: config.player.initialHealth,
-            lives: config.player.lives,
-            position: config.player.respawnPosition,
-            velocity: { x: 0, y: 0 },
-            rotation: 0,
-            scale: { x: 1, y: 1 },
-            size: config.player.size,
-            speed: config.player.speed,
-            score: 0,
-            fireRate: config.player.fireRate,
-            lastFireTime: 0,
-            powerups: [],
-            invincible: false,
-            respawning: false,
-            active: true,
-            combo: {
-              count: 0,
-              timer: 0,
-              multiplier: 1
-            },
-            weapons: {
-              bulletSpeed: config.weapons.bulletSpeed,
-              bulletDamage: config.weapons.bulletDamage
-            }
-          },
-          enemies: [],
-          bullets: [],
-          powerups: [],
-          input: {
-            type: 'move',
-            data: {
-              x: 0,
-              y: 0,
-              pressed: false
-            }
-          },
-          ui: {
-            currentScreen: 'menu',
-            elements: {
-              mainMenu: true,
-              startButton: true,
-              optionsButton: true,
-              scoreDisplay: false,
-              pauseMenu: false,
-              gameOverScreen: false
-            }
-          }
-        };
+        // 创建游戏循环服务
+        const gameLoopService = new GameLoopService(eventService);
+        gameLoopServiceRef.current = gameLoopService;
 
-        // 开始渲染循环
-        const gameLoop = () => {
+        // 设置游戏循环事件监听
+        eventService.on(GameEventType.RENDER_FRAME, () => {
           if (renderService) {
             renderService.render(initialState);
           }
-          animationFrameId = requestAnimationFrame(gameLoop);
-        };
+        });
 
-        gameLoop();
+        // 开始游戏循环
+        gameLoopService.start();
+
         logger.addLog('RenderServiceDemo', '游戏循环启动');
       } catch (error) {
         logger.addLog('RenderServiceDemo', '初始化失败', { error });
@@ -354,7 +362,9 @@ const RenderServiceDemo: React.FC = () => {
 
     return () => {
       logger.addLog('RenderServiceDemo', '开始清理资源');
-      cancelAnimationFrame(animationFrameId);
+      if (gameLoopServiceRef.current) {
+        gameLoopServiceRef.current.destroy();
+      }
       if (renderServiceRef.current) {
         renderServiceRef.current.destroy();
       }

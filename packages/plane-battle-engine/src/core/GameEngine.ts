@@ -28,6 +28,7 @@ import { EventService } from './services/EventService';
 import { RenderService } from './services/RenderService';
 import { InputService } from './services/InputService';
 import { PixiService } from './services/PixiService';
+import { GameLoopService } from './services/GameLoopService';
 
 // 导入核心管理器
 import { ConfigManager } from './managers/ConfigManager';
@@ -45,11 +46,10 @@ export class GameEngine {
   private responseManager: ResponseManager;
   private inputService: InputService;
   private rendererManager: RendererManager | null = null;
-  private lastTime: number = 0;
-  private animationFrameId: number | null = null;
   private logger: LogCollector;
   private isInitialized: boolean = false;
   private pixiService: PixiService;
+  private gameLoopService: GameLoopService;
 
   constructor(config: Partial<GameConfig>, container: HTMLElement) {
     // 初始化日志收集器（保持单例）
@@ -81,6 +81,16 @@ export class GameEngine {
     // 初始化输入服务
     this.inputService = new InputService(this.eventService);
 
+    // 初始化游戏循环服务
+    this.gameLoopService = new GameLoopService(this.eventService);
+
+    // 设置游戏循环事件监听
+    this.eventService.on(GameEventType.GAME_UPDATE, ({ deltaTime }) => this.update(deltaTime));
+    this.eventService.on(GameEventType.RENDER_FRAME, () => {
+      const state = this.stateManager.getState();
+      this.renderService.render(state);
+    });
+
     // 异步初始化渲染服务
     this.initializeAsync(gameConfig, container);
   }
@@ -101,42 +111,15 @@ export class GameEngine {
     }
   }
 
-  private gameLoop(timestamp: number): void {
-    if (!this.isInitialized || !this.rendererManager) return;
-
-    const deltaTime = this.lastTime ? (timestamp - this.lastTime) / 1000 : 0;
-    this.lastTime = timestamp;
-
-    const state = this.stateManager.getState();
-    
-    if (state.status !== 'playing') {
-      this.logger.addLog('GameEngine', '游戏未处于播放状态', { status: state.status });
-      return;
-    }
-
-    // 更新游戏状态
-    this.update(deltaTime);
-
-    // 渲染游戏对象
-    this.logger.addLog('GameEngine', '开始渲染帧');
-    this.renderService.render(state);
-
-    // 发送渲染事件
-    this.eventService.emit(GameEventType.RENDER_FRAME, { deltaTime });
-
-    // 继续游戏循环
-    if (state.status === 'playing') {
-      this.animationFrameId = requestAnimationFrame((timestamp) => this.gameLoop(timestamp));
-    }
-  }
-
   private update(deltaTime: number): void {
     const state = this.stateManager.getState();
     if (!state || state.status !== 'playing') {
+      this.logger.addLog('GameEngine', '游戏未处于播放状态', { status: state?.status });
       return;
     }
     
     // 更新游戏状态
+    this.logger.addLog('GameEngine', '开始更新游戏状态', { deltaTime });
     this.stateManager.updateState(deltaTime);
   }
 
@@ -151,7 +134,7 @@ export class GameEngine {
     if (state) {
       state.status = 'playing';
       this.stateManager.setState(state);
-      this.animationFrameId = requestAnimationFrame((timestamp) => this.gameLoop(timestamp));
+      this.gameLoopService.start();
     }
   }
 
@@ -160,10 +143,7 @@ export class GameEngine {
     if (state) {
       state.status = 'paused';
       this.stateManager.setState(state);
-      if (this.animationFrameId !== null) {
-        cancelAnimationFrame(this.animationFrameId);
-        this.animationFrameId = null;
-      }
+      this.gameLoopService.stop();
     }
   }
 
@@ -177,19 +157,14 @@ export class GameEngine {
     if (state) {
       state.status = 'playing';
       this.stateManager.setState(state);
-      if (this.animationFrameId === null) {
-        this.animationFrameId = requestAnimationFrame((timestamp) => this.gameLoop(timestamp));
-      }
+      this.gameLoopService.start();
     }
   }
 
   public resetGame(): void {
     this.stateManager.resetState();
     this.eventService.emit(GameEventType.GAME_RESET, undefined);
-    if (this.animationFrameId !== null) {
-      cancelAnimationFrame(this.animationFrameId);
-      this.animationFrameId = null;
-    }
+    this.gameLoopService.stop();
   }
 
   public getState(): GameState {
@@ -217,9 +192,7 @@ export class GameEngine {
   }
 
   public destroy(): void {
-    if (this.animationFrameId !== null) {
-      cancelAnimationFrame(this.animationFrameId);
-    }
+    this.gameLoopService.destroy();
     this.inputService.destroy();
     this.renderService.destroy();
     this.rendererManager = null;
