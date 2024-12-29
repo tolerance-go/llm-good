@@ -24,7 +24,7 @@ import { LogCollector } from '../../utils/LogCollector';
 import { Application } from 'pixi.js';
 import { PixiService } from './PixiService';
 
-export class RenderService implements GameRenderer {
+export class RenderService {
   private gameState: GameState | null = null;
   private config: GameConfig | null = null;
   private logger: LogCollector;
@@ -54,7 +54,10 @@ export class RenderService implements GameRenderer {
     // 初始化所有渲染器
     for (const renderer of this.renderers) {
       if (this.config) {
-        renderer.initialize(this.config, this.pixiService.getApp()!.canvas);
+        await renderer.initialize(this.config, this.pixiService);
+        this.logger.addLog('RenderService', '渲染器初始化完成', { 
+          rendererType: renderer.constructor.name
+        });
       }
     }
   }
@@ -63,7 +66,10 @@ export class RenderService implements GameRenderer {
     this.logger.addLog('RenderService', '注册新渲染器', { rendererType: renderer.constructor.name });
     this.renderers.add(renderer);
     if (this.config && this.pixiService.getApp()) {
-      renderer.initialize(this.config, this.pixiService.getApp()!.canvas);
+      renderer.initialize(this.config, this.pixiService);
+      this.logger.addLog('RenderService', '渲染器初始化完成', { 
+        rendererType: renderer.constructor.name
+      });
     }
   }
 
@@ -128,12 +134,6 @@ export class RenderService implements GameRenderer {
 
   getApp(): Application | null {
     return this.pixiService.getApp();
-  }
-  /**
-   * 检查视觉测试是否就绪
-   */
-  isVisualTestReady(): boolean {
-    return this.pixiService.getApp()?.canvas.hasAttribute('data-visual-test-ready') ?? false;
   }
 
   destroy(): void {

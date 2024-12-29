@@ -1,5 +1,6 @@
 import { GameState } from './state';
 import { GameConfig } from './config';
+import { PixiService } from '../core/services/PixiService';
 
 // 渲染统计信息
 export interface RenderStats {
@@ -29,7 +30,7 @@ export interface PlayerInput {
 // 渲染器接口
 export interface GameRenderer {
   // 初始化渲染器
-  initialize(config: GameConfig, canvas: HTMLCanvasElement): void;
+  initialize(config: GameConfig, pixiService: PixiService): Promise<void>;
   
   // 清理资源
   destroy(): void;
