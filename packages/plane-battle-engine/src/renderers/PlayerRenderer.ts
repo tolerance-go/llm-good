@@ -9,8 +9,6 @@ export class PlayerRenderer implements GameRenderer {
   private container: Container | null = null;
   private playerSprite: Sprite | null = null;
   private lastPosition: { x: number; y: number } = { x: 400, y: 568 };
-  private lastLogTime: number = 0;
-  private logUpdateInterval: number = 500; // 每500ms更新一次日志
   private logger: LogCollector;
   private debugMode: boolean = false;
   private config: GameConfig | null = null;
@@ -95,21 +93,17 @@ export class PlayerRenderer implements GameRenderer {
     if (state.player) {
       const newPosition = state.player.position;
       
-      // 只有当位置发生变化时才打印日志
+      // 只有当位置发生变化时才更新和记录日志
       if (this.lastPosition.x !== newPosition.x || this.lastPosition.y !== newPosition.y) {
-        const now = performance.now();
-        if (now - this.lastLogTime > this.logUpdateInterval) {
-          const logData = {
-            from: { ...this.lastPosition },
-            to: { ...newPosition },
-            delta: {
-              x: newPosition.x - this.lastPosition.x,
-              y: newPosition.y - this.lastPosition.y
-            }
-          };
-          this.logger.addLog('PlayerRenderer', '更新玩家位置', logData);
-          this.lastLogTime = now;
-        }
+        const logData = {
+          from: { ...this.lastPosition },
+          to: { ...newPosition },
+          delta: {
+            x: newPosition.x - this.lastPosition.x,
+            y: newPosition.y - this.lastPosition.y
+          }
+        };
+        this.logger.addLog('PlayerRenderer', '更新玩家位置', logData);
         
         this.playerSprite.position.set(newPosition.x, newPosition.y);
         this.lastPosition = { ...newPosition };
