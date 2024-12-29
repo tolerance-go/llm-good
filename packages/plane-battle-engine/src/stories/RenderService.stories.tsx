@@ -95,15 +95,31 @@ class StartButtonRenderer implements GameRenderer {
     // 确保文本位于按钮中心
     this.buttonText.position.set(0, 0);
 
+    // 确保容器可见
+    this.container.visible = true;
+    this.button.visible = true;
+
     this.logger.addLog('StartButtonRenderer', '初始化完成', {
       buttonX: this.button.x,
-      buttonY: this.button.y
+      buttonY: this.button.y,
+      containerVisible: this.container.visible,
+      buttonVisible: this.button.visible,
+      hasBackground: !!this.background,
+      hasText: !!this.buttonText,
+      textContent: this.buttonText.text,
+      containerChildren: this.container.children.length
     });
   }
 
   render(state: GameState): void {
     // 可以根据游戏状态更新按钮的显示
     this.button.visible = state.status !== 'playing';
+    this.logger.addLog('StartButtonRenderer', '渲染按钮', {
+      visible: this.button.visible,
+      buttonX: this.button.x,
+      buttonY: this.button.y,
+      status: state.status
+    });
   }
 
   setDebug(enabled: boolean): void {
@@ -138,6 +154,7 @@ const RenderServiceDemo: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const renderServiceRef = useRef<RenderService | null>(null);
   const gameLoopServiceRef = useRef<GameLoopService | null>(null);
+  const frameCountRef = useRef<number>(0);
   const logger = LogCollector.getInstance();
 
   useEffect(() => {
@@ -146,6 +163,13 @@ const RenderServiceDemo: React.FC = () => {
       logger.addLog('RenderServiceDemo', '容器元素未找到');
       return;
     }
+
+    logger.addLog('RenderServiceDemo', '开始初始化组件', {
+      containerWidth: container.clientWidth,
+      containerHeight: container.clientHeight,
+      containerVisible: container.style.display !== 'none',
+      containerPosition: container.style.position
+    });
 
     const config: GameConfig = {
       canvas: {
@@ -324,34 +348,74 @@ const RenderServiceDemo: React.FC = () => {
 
         // 创建事件服务
         const eventService = new EventService();
+        logger.addLog('RenderServiceDemo', '事件服务创建完成');
 
         // 创建渲染服务实例
         const renderService = new RenderService(new PixiService());
         renderServiceRef.current = renderService;
+        logger.addLog('RenderServiceDemo', '渲染服务创建完成');
 
         // 初始化渲染服务
         await renderService.initialize(config, container);
+        const app = renderService.getApp();
+        logger.addLog('RenderServiceDemo', '渲染服务初始化完成', {
+          hasApp: !!app,
+          appWidth: app?.screen.width,
+          appHeight: app?.screen.height,
+          appStage: !!app?.stage,
+          appView: !!app?.view
+        });
 
         // 创建并添加按钮渲染器
         const buttonRenderer = new StartButtonRenderer(eventService);
         await buttonRenderer.initialize(config, renderService.getApp()!.canvas);
+        
+        // 确保渲染器被正确注册和添加到舞台
         renderService.registerRenderer(buttonRenderer);
+        if (app && app.stage && buttonRenderer.getContainer()) {
+          app.stage.addChild(buttonRenderer.getContainer());
+        }
+        
+        logger.addLog('RenderServiceDemo', '按钮渲染器初始化和注册完成', {
+          buttonContainer: !!buttonRenderer.getContainer(),
+          containerParent: !!buttonRenderer.getContainer().parent,
+          containerVisible: buttonRenderer.getContainer().visible,
+          containerPosition: {
+            x: buttonRenderer.getContainer().x,
+            y: buttonRenderer.getContainer().y
+          },
+          stageChildren: app?.stage.children.length || 0
+        });
 
         // 创建游戏循环服务
         const gameLoopService = new GameLoopService(eventService);
         gameLoopServiceRef.current = gameLoopService;
+        logger.addLog('RenderServiceDemo', '游戏循环服务创建完成');
 
         // 设置游戏循环事件监听
         eventService.on(GameEventType.RENDER_FRAME, () => {
           if (renderService) {
+            frameCountRef.current++;
+            // 每60帧记录一次日志
+            if (frameCountRef.current % 60 === 0) {
+              logger.addLog('RenderServiceDemo', '渲染帧', { 
+                frameCount: frameCountRef.current,
+                hasRenderService: !!renderService,
+                state: initialState.status,
+                stage: {
+                  children: app?.stage.children.length || 0,
+                  visible: app?.stage.visible || false
+                }
+              });
+            }
             renderService.render(initialState);
           }
         });
 
         // 开始游戏循环
         gameLoopService.start();
+        logger.addLog('RenderServiceDemo', '游戏循环启动完成');
 
-        logger.addLog('RenderServiceDemo', '游戏循环启动');
       } catch (error) {
         logger.addLog('RenderServiceDemo', '初始化失败', { error });
         console.error('渲染服务初始化失败:', error);
