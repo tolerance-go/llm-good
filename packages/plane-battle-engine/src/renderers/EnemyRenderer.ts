@@ -3,6 +3,7 @@ import { GameState } from '../types';
 import { GameRenderer, RenderStats } from '../types/renderers';
 import { GameConfig } from '../types/config';
 import { LogCollector } from '../utils/LogCollector';
+import { PixiService } from '../core/services/PixiService';
 
 export class EnemyRenderer implements GameRenderer {
   private container: Container | null = null;
@@ -18,17 +19,24 @@ export class EnemyRenderer implements GameRenderer {
     this.logger = LogCollector.getInstance();
   }
 
-  initialize(config: GameConfig, canvas: HTMLCanvasElement): void {
+  async initialize(config: GameConfig, pixiService: PixiService): Promise<void> {
     this.config = config;
-    this.logger.addLog('EnemyRenderer', '初始化敌机渲染器', {
-      width: canvas.width,
-      height: canvas.height
-    });
-  }
-
-  setContainer(container: Container, app: Application): void {
-    this.container = container;
+    const app = pixiService.getApp();
+    if (!app) {
+      throw new Error('PixiJS 应用实例未初始化');
+    }
     this.app = app;
+
+    this.logger.addLog('EnemyRenderer', '初始化敌机渲染器', {
+      width: config.canvas.width,
+      height: config.canvas.height
+    });
+
+    // 创建主容器
+    this.container = new Container();
+    app.stage.addChild(this.container);
+
+    // 创建敌机纹理
     this.createEnemyTexture();
   }
 

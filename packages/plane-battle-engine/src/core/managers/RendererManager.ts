@@ -55,11 +55,6 @@ export class RendererManager {
   private registerRenderer(name: string, renderer: GameRenderer): void {
     this.logger.addLog('RendererManager', `注册渲染器到渲染服务: ${name}`);
     this.renderers.set(name, renderer);
-    
-    if (this.mainContainer && this.app) {
-      (renderer as PlayerRenderer | EnemyRenderer | BackgroundRenderer | ScoreRenderer).setContainer(this.mainContainer, this.app);
-    }
-    
     this.renderService.registerRenderer(renderer);
   }
 

@@ -1,8 +1,9 @@
-import { Container, Text, Application } from 'pixi.js';
+import { Container, Text } from 'pixi.js';
 import { GameState } from '../../types/state';
 import { GameConfig } from '../../types/config';
 import { LogCollector } from '../../utils/LogCollector';
 import { BaseUIRenderer } from '../../abstract/BaseUIRenderer';
+import { PixiService } from '../../core/services/PixiService';
 
 export class ScoreRenderer extends BaseUIRenderer {
   private scoreText: Text | null = null;
@@ -14,19 +15,23 @@ export class ScoreRenderer extends BaseUIRenderer {
     this.logger.addLog('ScoreRenderer', '创建得分渲染器实例');
   }
 
-  initialize(config: GameConfig, canvas: HTMLCanvasElement): void {
+  async initialize(config: GameConfig, pixiService: PixiService): Promise<void> {
     this.logger.addLog('ScoreRenderer', '初始化得分渲染器');
     this.config = config;
-    this.logger.addLog('ScoreRenderer', '画布尺寸', {
-      width: canvas.width,
-      height: canvas.height
-    });
-  }
-
-  setContainer(container: Container, app: Application): void {
-    this.logger.addLog('ScoreRenderer', '设置容器开始');
-    this.container = container;
+    const app = pixiService.getApp();
+    if (!app) {
+      throw new Error('PixiJS 应用实例未初始化');
+    }
     this.app = app;
+
+    this.logger.addLog('ScoreRenderer', '画布尺寸', {
+      width: config.canvas.width,
+      height: config.canvas.height
+    });
+
+    // 创建主容器
+    this.container = new Container();
+    app.stage.addChild(this.container);
 
     // 创建得分文本
     if (this.scoreText) {
@@ -46,7 +51,7 @@ export class ScoreRenderer extends BaseUIRenderer {
     this.scoreText.position.set(20, 20);
 
     // 添加到容器
-    container.addChild(this.scoreText);
+    this.container.addChild(this.scoreText);
 
     this.logger.addLog('ScoreRenderer', '得分文本创建完成');
   }

@@ -76,7 +76,7 @@ export class GameEngine {
     this.commandManager = new CommandManager(this.stateManager, gameConfig, this.eventService);
     
     // 初始化响应管理器
-    this.responseManager = new ResponseManager(gameConfig, this.stateManager, this.eventService);
+    this.responseManager = new ResponseManager(gameConfig, this.stateManager, this.eventService, this.commandManager);
     
     // 初始化输入服务
     this.inputService = new InputService(this.eventService);

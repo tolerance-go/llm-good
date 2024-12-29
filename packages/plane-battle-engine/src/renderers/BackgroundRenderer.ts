@@ -1,7 +1,8 @@
-import { Container, TilingSprite, Graphics, RenderTexture, Application } from 'pixi.js';
+import { Container, Application, TilingSprite, Graphics, RenderTexture } from 'pixi.js';
 import { LogCollector } from '../utils/LogCollector';
 import { GameRenderer, RenderStats } from '../types/renderers';
 import { GameConfig } from '../types/config';
+import { PixiService } from '../core/services/PixiService';
 
 export class BackgroundRenderer implements GameRenderer {
   private container: Container | null = null;
@@ -16,17 +17,24 @@ export class BackgroundRenderer implements GameRenderer {
     this.logger = LogCollector.getInstance();
   }
 
-  public initialize(config: GameConfig, canvas: HTMLCanvasElement): void {
+  public async initialize(config: GameConfig, pixiService: PixiService): Promise<void> {
     this.config = config;
-    this.logger.addLog('BackgroundRenderer', '初始化背景渲染器', {
-      width: canvas.width,
-      height: canvas.height
-    });
-  }
-
-  setContainer(container: Container, app: Application): void {
-    this.container = container;
+    const app = pixiService.getApp();
+    if (!app) {
+      throw new Error('PixiJS 应用实例未初始化');
+    }
     this.app = app;
+    
+    this.logger.addLog('BackgroundRenderer', '初始化背景渲染器', {
+      width: config.canvas.width,
+      height: config.canvas.height
+    });
+
+    // 创建主容器
+    this.container = new Container();
+    app.stage.addChild(this.container);
+    
+    // 创建背景
     this.createBackground();
   }
 

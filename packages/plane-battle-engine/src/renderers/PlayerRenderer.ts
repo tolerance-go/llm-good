@@ -3,6 +3,7 @@ import { GameState } from '../types';
 import { GameRenderer, RenderStats } from '../types/renderers';
 import { GameConfig } from '../types/config';
 import { LogCollector } from '../utils/LogCollector';
+import { PixiService } from '../core/services/PixiService';
 
 export class PlayerRenderer implements GameRenderer {
   private container: Container | null = null;
@@ -21,19 +22,23 @@ export class PlayerRenderer implements GameRenderer {
     this.logger.addLog('PlayerRenderer', '创建玩家渲染器实例');
   }
 
-  initialize(config: GameConfig, canvas: HTMLCanvasElement): void {
+  async initialize(config: GameConfig, pixiService: PixiService): Promise<void> {
     this.logger.addLog('PlayerRenderer', '初始化玩家渲染器', { 
-      canvasWidth: canvas.width, 
-      canvasHeight: canvas.height,
-      hasConfig: !!config
+      hasConfig: !!config,
+      hasPixiService: !!pixiService
     });
     this.config = config;
-  }
-
-  setContainer(container: Container, app: Application): void {
-    this.logger.addLog('PlayerRenderer', '设置容器开始');
-    this.container = container;
+    
+    // 获取 PixiJS 应用实例
+    const app = pixiService.getApp();
+    if (!app) {
+      throw new Error('PixiJS 应用实例未初始化');
+    }
     this.app = app;
+
+    // 创建主容器
+    this.container = new Container();
+    app.stage.addChild(this.container);
     
     // 创建玩家精灵
     if (this.playerSprite) {
@@ -63,7 +68,7 @@ export class PlayerRenderer implements GameRenderer {
     this.playerSprite.anchor.set(0.5);
     
     // 添加到容器
-    container.addChild(this.playerSprite);
+    this.container.addChild(this.playerSprite);
 
     this.logger.addLog('PlayerRenderer', '玩家精灵创建完成', { 
       position: { x: 400, y: 568 },

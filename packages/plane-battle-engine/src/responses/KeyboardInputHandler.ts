@@ -46,31 +46,29 @@ export class KeyboardInputHandler extends BaseResponseHandler {
       previousState: currentState.input.keyboard
     });
 
-    // 处理移动指令
-    if (inputData.type === 'move' && inputData.data) {
-      const direction = {
-        x: inputData.data.x || 0,
-        y: inputData.data.y || 0
-      };
+    // 根据键盘状态计算移动方向
+    const direction = {
+      x: (inputData.keyboard.right ? 1 : 0) - (inputData.keyboard.left ? 1 : 0),
+      y: (inputData.keyboard.down ? 1 : 0) - (inputData.keyboard.up ? 1 : 0)
+    };
 
-      if (direction.x !== 0 || direction.y !== 0) {
-        this.logger.addLog('KeyboardInputHandler', `执行移动指令 - 方向: (${direction.x}, ${direction.y})`, {
-          direction,
-          currentPosition: currentState.player.position,
-          speed: currentState.player.speed
-        });
+    if (direction.x !== 0 || direction.y !== 0) {
+      this.logger.addLog('KeyboardInputHandler', `执行移动指令 - 方向: (${direction.x}, ${direction.y})`, {
+        direction,
+        currentPosition: currentState.player.position,
+        speed: currentState.player.speed
+      });
 
-        // 执行移动命令
-        this.commandService.executeCommand(CommandTypeEnum.MOVE, {
-          direction,
-          deltaTime: 1/60 // 假设 60fps
-        });
+      // 执行移动命令
+      this.commandService.executeCommand(CommandTypeEnum.MOVE, {
+        direction,
+        deltaTime: 1/60 // 假设 60fps
+      });
 
-        // 记录移动后的位置
-        this.logger.addLog('KeyboardInputHandler', `移动后位置: (${currentState.player.position.x}, ${currentState.player.position.y})`, {
-          newPosition: currentState.player.position
-        });
-      }
+      // 记录移动后的位置
+      this.logger.addLog('KeyboardInputHandler', `移动后位置: (${currentState.player.position.x}, ${currentState.player.position.y})`, {
+        newPosition: currentState.player.position
+      });
     }
   }
 } 

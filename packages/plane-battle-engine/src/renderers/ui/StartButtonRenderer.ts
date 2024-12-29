@@ -1,10 +1,11 @@
-import { Container, Text, Graphics, Application } from 'pixi.js';
+import { Container, Text, Graphics } from 'pixi.js';
 import { GameState } from '../../types/state';
 import { GameConfig } from '../../types/config';
 import { LogCollector } from '../../utils/LogCollector';
 import { BaseUIRenderer } from '../../abstract/BaseUIRenderer';
 import { EventService } from '../../core/services/EventService';
 import { GameEventType } from '../../types/events';
+import { PixiService } from '../../core/services/PixiService';
 
 export class StartButtonRenderer extends BaseUIRenderer {
   private button: Container | null = null;
@@ -18,16 +19,20 @@ export class StartButtonRenderer extends BaseUIRenderer {
     this.logger.addLog('StartButtonRenderer', '创建开始按钮渲染器实例');
   }
 
-  initialize(config: GameConfig): void {
+  async initialize(config: GameConfig, pixiService: PixiService): Promise<void> {
     this.logger.addLog('StartButtonRenderer', '初始化开始按钮渲染器');
     this.config = config;
-  }
-
-  setContainer(container: Container, app: Application): void {
-    this.logger.addLog('StartButtonRenderer', '设置容器开始');
-    this.logger.addLog('StartButtonRenderer', `屏幕尺寸: ${app.screen.width}x${app.screen.height}`);
-    this.container = container;
+    const app = pixiService.getApp();
+    if (!app) {
+      throw new Error('PixiJS 应用实例未初始化');
+    }
     this.app = app;
+
+    this.logger.addLog('StartButtonRenderer', `屏幕尺寸: ${app.screen.width}x${app.screen.height}`);
+
+    // 创建主容器
+    this.container = new Container();
+    app.stage.addChild(this.container);
 
     // 创建按钮容器
     this.button = new Container();
@@ -68,11 +73,11 @@ export class StartButtonRenderer extends BaseUIRenderer {
     this.button.position.set(centerX - 100, centerY - 25); // 减去按钮尺寸的一半
 
     // 添加到主容器
-    container.addChild(this.button);
+    this.container.addChild(this.button);
     
     this.logger.addLog('StartButtonRenderer', `按钮位置: x=${this.button.x}, y=${this.button.y}`);
-    this.logger.addLog('StartButtonRenderer', `主容器位置: x=${container.x}, y=${container.y}`);
-    this.logger.addLog('StartButtonRenderer', `主容器可见性: ${container.visible}`);
+    this.logger.addLog('StartButtonRenderer', `主容器位置: x=${this.container.x}, y=${this.container.y}`);
+    this.logger.addLog('StartButtonRenderer', `主容器可见性: ${this.container.visible}`);
     this.logger.addLog('StartButtonRenderer', '开始按钮创建完成');
   }
 

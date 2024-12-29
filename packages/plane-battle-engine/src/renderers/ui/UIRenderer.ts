@@ -1,4 +1,4 @@
-import { Container, Application } from 'pixi.js';
+import { Container } from 'pixi.js';
 import { GameState } from '../../types/state';
 import { GameConfig } from '../../types/config';
 import { BaseUIRenderer } from '../../abstract/BaseUIRenderer';
@@ -6,6 +6,7 @@ import { ScoreRenderer } from './ScoreRenderer';
 import { StartButtonRenderer } from './StartButtonRenderer';
 import { LogCollector } from '../../utils/LogCollector';
 import { EventService } from '../../core/services/EventService';
+import { PixiService } from '../../core/services/PixiService';
 
 export class UIRenderer extends BaseUIRenderer {
   private renderers: BaseUIRenderer[] = [];
@@ -27,25 +28,23 @@ export class UIRenderer extends BaseUIRenderer {
     ];
   }
 
-  initialize(config: GameConfig, canvas: HTMLCanvasElement): void {
+  async initialize(config: GameConfig, pixiService: PixiService): Promise<void> {
     this.logger.addLog('UIRenderer', '初始化UI渲染器');
     this.config = config;
-
-    // 初始化所有子渲染器
-    this.renderers.forEach(renderer => {
-      renderer.initialize(config, canvas);
-    });
-  }
-
-  setContainer(container: Container, app: Application): void {
-    this.logger.addLog('UIRenderer', '设置UI容器');
-    this.container = container;
+    const app = pixiService.getApp();
+    if (!app) {
+      throw new Error('PixiJS 应用实例未初始化');
+    }
     this.app = app;
 
-    // 为每个子渲染器设置容器
-    this.renderers.forEach(renderer => {
-      renderer.setContainer(container, app);
-    });
+    // 创建主容器
+    this.container = new Container();
+    app.stage.addChild(this.container);
+
+    // 初始化所有子渲染器
+    for (const renderer of this.renderers) {
+      await renderer.initialize(config, pixiService);
+    }
   }
 
   render(state: GameState): void {

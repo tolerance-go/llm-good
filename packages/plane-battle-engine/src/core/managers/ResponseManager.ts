@@ -31,25 +31,27 @@ import {
 } from '../../responses';
 import { StateManager } from './StateManager';
 import { EventService } from '../services/EventService';
-import { CommandService } from '../services/CommandService';
+import { CommandManager } from './CommandManager';
 
 export class ResponseManager {
   private handlers: Map<string, ResponseHandler> = new Map();
   private stateManager: StateManager;
   private config: GameConfig;
   private eventService: EventService;
+  private commandManager: CommandManager;
 
-  constructor(config: GameConfig, stateManager: StateManager, eventService: EventService) {
+  constructor(config: GameConfig, stateManager: StateManager, eventService: EventService, commandManager: CommandManager) {
     this.config = config;
     this.stateManager = stateManager;
     this.eventService = eventService;
+    this.commandManager = commandManager;
     this.initializeHandlers();
     this.setupEventListeners();
   }
 
   private initializeHandlers(): void {
-    // 注册所有响应处理器
-    const commandService = new CommandService(this.stateManager, this.eventService);
+    // 使用 CommandManager 中的 CommandService
+    const commandService = this.commandManager.getCommandService();
     const handlers = [
       new KeyboardInputHandler(commandService),
       new CollisionHandler(this.eventService),
